@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loop — Business Setup</title>
+<style>
+  :root {
+    --bg: #fafbfc;
+    --white: #ffffff;
+    --text: #1a1a2e;
+    --text-sec: #5a5d7a;
+    --text-light: #9496ad;
+    --border: #e8eaef;
+    --border-focus: #7c6cf0;
+    --accent: #6c5ce7;
+    --accent-soft: #f0eeff;
+    --accent-text: #5b4cdb;
+    --green: #10b981;
+    --green-soft: #ecfdf5;
+    --green-text: #059669;
+    --orange: #f59e0b;
+    --orange-soft: #fffbeb;
+    --blue: #3b82f6;
+    --blue-soft: #eff6ff;
+    --r: 16px;
+    --rs: 10px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.06);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ===== TOP BAR ===== */
+  .topbar {
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .topbar-left { display:flex; align-items:center; gap:16px; }
+  .logo { font-size:17px; font-weight:800; color:var(--accent); letter-spacing:-0.5px; }
+  .topbar-divider { width:1px; height:20px; background:var(--border); }
+  .topbar-label { font-size:13px; color:var(--text-sec); }
+
+  .topbar-right { display:flex; align-items:center; gap:20px; }
+  .save-status { font-size:12px; color:var(--green-text); display:flex; align-items:center; gap:5px; }
+  .save-dot { width:6px; height:6px; border-radius:50%; background:var(--green); }
+  .help-link { font-size:13px; color:var(--text-sec); text-decoration:none; cursor:pointer; }
+  .help-link:hover { color:var(--accent); }
+
+  /* ===== PROGRESS STRIP ===== */
+  .progress-strip {
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 32px;
+  }
+
+  .progress-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .progress-text { font-size:13px; color:var(--text-sec); }
+  .progress-text strong { color:var(--text); }
+  .progress-time { font-size:12px; color:var(--text-light); display:flex; align-items:center; gap:6px; }
+
+  .progress-bar-outer { height:6px; background:var(--border); border-radius:3px; overflow:hidden; }
+  .progress-bar-inner { height:100%; border-radius:3px; background:linear-gradient(90deg, var(--accent), #a78bfa); transition:width 0.6s ease; }
+
+  .progress-steps { display:flex; justify-content:space-between; margin-top:12px; }
+  .p-step { display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; flex:1; }
+  .p-step-dot { width:10px; height:10px; border-radius:50%; border:2px solid var(--border); background:var(--white); transition:all 0.2s; }
+  .p-step.done .p-step-dot { background:var(--green); border-color:var(--green); }
+  .p-step.active .p-step-dot { background:var(--accent); border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+  .p-step-label { font-size:10px; color:var(--text-light); white-space:nowrap; }
+  .p-step.active .p-step-label { color:var(--accent-text); font-weight:600; }
+  .p-step.done .p-step-label { color:var(--green-text); }
+
+  /* ===== MAIN CONTAINER ===== */
+  .container { max-width:680px; margin:0 auto; padding:32px 24px 80px; }
+
+  /* ===== STEP HEADER ===== */
+  .step-header { margin-bottom:28px; }
+  .step-eyebrow { font-size:12px; color:var(--accent-text); font-weight:600; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:6px; display:flex; align-items:center; gap:8px; }
+  .step-time { font-size:11px; font-weight:400; color:var(--text-light); background:var(--bg); padding:2px 10px; border-radius:20px; text-transform:none; letter-spacing:0; }
+  .step-header h1 { font-size:24px; font-weight:700; color:var(--text); margin-bottom:6px; letter-spacing:-0.3px; }
+  .step-header p { font-size:14px; color:var(--text-sec); max-width:560px; }
+
+  /* ===== WHY BANNER ===== */
+  .why-banner {
+    background: var(--accent-soft);
+    border: 1px solid rgba(108,92,231,0.12);
+    border-radius: var(--rs);
+    padding: 14px 18px;
+    margin-bottom: 24px;
+    font-size: 13px;
+    color: var(--accent-text);
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .why-banner .why-icon { font-size:16px; flex-shrink:0; margin-top:1px; }
+
+  .prefill-banner {
+    background: var(--green-soft);
+    border: 1px solid rgba(16,185,129,0.15);
+    border-radius: var(--rs);
+    padding: 14px 18px;
+    margin-bottom: 24px;
+    font-size: 13px;
+    color: var(--green-text);
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .prefill-banner .pf-icon { font-size:16px; flex-shrink:0; margin-top:1px; }
+
+  /* ===== CARD ===== */
+  .card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    margin-bottom: 16px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .card-header h3 { font-size:14px; font-weight:600; color:var(--text); }
+
+  .card-body { padding: 20px; }
+
+  .card-footer {
+    padding: 14px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg);
+    border-radius: 0 0 var(--r) var(--r);
+  }
+
+  /* ===== FORM ===== */
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  .full { grid-column:1/-1; }
+
+  .fg { display:flex; flex-direction:column; gap:5px; }
+  .fl {
+    font-size:12px; font-weight:600; color:var(--text-sec);
+    display:flex; align-items:center; gap:6px;
+  }
+  .fl .opt { font-size:11px; color:var(--text-light); font-weight:400; }
+
+  .fi {
+    padding:10px 14px;
+    background:var(--white);
+    border:1.5px solid var(--border);
+    border-radius:var(--rs);
+    color:var(--text);
+    font-size:14px;
+    transition:border-color 0.15s, box-shadow 0.15s;
+  }
+  .fi:focus { outline:none; border-color:var(--border-focus); box-shadow:0 0 0 3px var(--accent-soft); }
+  .fi::placeholder { color:var(--text-light); }
+  .fi.prefilled { border-color:rgba(16,185,129,0.35); background:rgba(16,185,129,0.03); }
+
+  .fi-hint { font-size:11px; color:var(--text-light); }
+
+  .fi-suffix-wrap { position:relative; }
+  .fi-suffix-wrap .fi { padding-right:36px; width:100%; }
+  .fi-suffix { position:absolute; right:12px; top:50%; transform:translateY(-50%); color:var(--text-light); font-size:13px; }
+
+  select.fi {
+    appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239496ad'%3E%3Cpath d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position:right 12px center;
+    padding-right:32px;
+    cursor:pointer;
+  }
+
+  /* Toggles */
+  .toggle-row { display:flex; align-items:center; justify-content:space-between; padding:10px 0; }
+  .toggle-label { font-size:13px; color:var(--text-sec); }
+  .toggle { width:40px; height:22px; background:var(--border); border-radius:11px; position:relative; cursor:pointer; transition:background 0.2s; }
+  .toggle.on { background:var(--accent); }
+  .toggle::after { content:''; position:absolute; width:16px; height:16px; border-radius:50%; background:white; top:3px; left:3px; transition:transform 0.2s; box-shadow:0 1px 3px rgba(0,0,0,0.15); }
+  .toggle.on::after { transform:translateX(18px); }
+
+  /* Upload */
+  .upload-zone {
+    border:2px dashed var(--border);
+    border-radius:var(--rs);
+    padding:32px 20px;
+    text-align:center;
+    cursor:pointer;
+    transition:border-color 0.15s, background 0.15s;
+    background:var(--bg);
+  }
+  .upload-zone:hover { border-color:var(--accent); background:var(--accent-soft); }
+  .upload-zone .uz-text { font-size:13px; color:var(--text-sec); }
+  .upload-zone .uz-text strong { color:var(--accent-text); }
+  .upload-zone .uz-hint { font-size:11px; color:var(--text-light); margin-top:6px; }
+
+  /* Buttons */
+  .btn { padding:10px 24px; border-radius:var(--rs); font-size:13px; font-weight:600; cursor:pointer; border:none; transition:all 0.15s; }
+  .btn-primary { background:var(--accent); color:white; }
+  .btn-primary:hover { background:#5b4cdb; box-shadow:0 2px 8px rgba(108,92,231,0.3); }
+  .btn-ghost { background:var(--white); color:var(--text-sec); border:1.5px solid var(--border); }
+  .btn-ghost:hover { border-color:var(--text-light); color:var(--text); }
+  .btn-sm { padding:6px 14px; font-size:12px; }
+  .btn-link { background:none; border:none; color:var(--accent-text); font-size:12px; cursor:pointer; font-weight:500; }
+  .btn-link:hover { text-decoration:underline; }
+
+  /* Tags */
+  .tag { display:inline-flex; align-items:center; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:500; background:var(--bg); border:1px solid var(--border); color:var(--text-sec); }
+
+  /* Table */
+  .data-table { width:100%; border-collapse:collapse; font-size:13px; }
+  .data-table th { text-align:left; padding:10px 14px; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-light); font-weight:600; border-bottom:1px solid var(--border); background:var(--bg); }
+  .data-table td { padding:10px 14px; border-bottom:1px solid var(--border); vertical-align:middle; }
+  .data-table tr:last-child td { border:none; }
+  .data-table .fi { padding:6px 10px; font-size:12px; }
+
+  /* Brand pills */
+  .brand-pills { display:flex; gap:8px; margin-bottom:18px; }
+  .brand-pill { padding:7px 18px; border:1.5px solid var(--border); border-radius:var(--rs); font-size:13px; cursor:pointer; background:var(--white); color:var(--text-sec); transition:all 0.15s; font-weight:500; }
+  .brand-pill.active { background:var(--accent); color:white; border-color:var(--accent); }
+  .brand-pill:hover:not(.active) { border-color:var(--accent); color:var(--accent-text); }
+
+  /* Inner tabs */
+  .inner-tabs { display:flex; gap:0; border-bottom:1px solid var(--border); }
+  .inner-tab { padding:12px 20px; font-size:13px; color:var(--text-light); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; transition:all 0.15s; font-weight:500; }
+  .inner-tab:hover { color:var(--text); }
+  .inner-tab.active { color:var(--accent-text); border-bottom-color:var(--accent); }
+
+  /* Summary row */
+  .summary-row {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:14px 18px;
+    background:var(--bg);
+    border:1px solid var(--border);
+    border-radius:var(--rs);
+  }
+  .summary-row .sr-label { font-size:13px; font-weight:600; color:var(--text-sec); }
+  .summary-row .sr-value { font-size:17px; font-weight:700; color:var(--accent); }
+
+  /* Downstream uses - subtle */
+  .uses-strip {
+    display:flex; flex-wrap:wrap; gap:6px; margin-top:20px; padding-top:16px;
+    border-top:1px solid var(--border);
+  }
+  .uses-strip .uses-label { width:100%; font-size:10px; text-transform:uppercase; letter-spacing:0.8px; color:var(--text-light); font-weight:600; margin-bottom:2px; }
+  .use-tag { padding:3px 10px; border-radius:5px; font-size:11px; background:var(--bg); border:1px solid var(--border); color:var(--text-light); }
+
+  /* Completion */
+  .complete-wrap { text-align:center; padding:48px 20px; }
+  .complete-icon { width:64px; height:64px; border-radius:50%; background:var(--green-soft); display:flex; align-items:center; justify-content:center; margin:0 auto 20px; font-size:28px; }
+  .complete-wrap h1 { font-size:24px; margin-bottom:8px; }
+  .complete-wrap p { color:var(--text-sec); font-size:14px; max-width:440px; margin:0 auto 32px; }
+
+  .module-cards { display:grid; grid-template-columns:1fr 1fr; gap:12px; max-width:520px; margin:0 auto; }
+  .mod-card { background:var(--white); border:1.5px solid var(--border); border-radius:var(--r); padding:18px; text-align:left; cursor:pointer; transition:all 0.15s; }
+  .mod-card:hover { border-color:var(--accent); box-shadow:var(--shadow-md); }
+  .mod-card.ready { border-color:var(--green); }
+  .mod-card h4 { font-size:13px; font-weight:600; margin-bottom:4px; }
+  .mod-card.ready h4 { color:var(--green-text); }
+  .mod-card p { font-size:12px; color:var(--text-light); }
+
+  /* Status dot */
+  .sd { width:7px; height:7px; border-radius:50%; display:inline-block; margin-right:5px; }
+  .sd.green { background:var(--green); }
+  .sd.orange { background:var(--orange); }
+
+  /* Integration cards */
+  .int-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .int-card { display:flex; align-items:center; justify-content:space-between; padding:16px 18px; background:var(--white); border:1.5px solid var(--border); border-radius:var(--rs); transition:border-color 0.15s; }
+  .int-card:hover { border-color:var(--accent); }
+  .int-card-info h4 { font-size:13px; font-weight:600; }
+  .int-card-info p { font-size:11px; color:var(--text-light); }
+
+  .int-grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+  .conn-card { padding:18px; background:var(--bg); border:1.5px solid var(--border); border-radius:var(--rs); text-align:center; transition:all 0.15s; cursor:pointer; }
+  .conn-card:hover { border-color:var(--accent); background:var(--accent-soft); }
+  .conn-card h4 { font-size:13px; font-weight:600; margin:8px 0 4px; }
+  .conn-card p { font-size:11px; color:var(--text-light); }
+
+  /* Color swatches */
+  .swatch-row { display:flex; gap:14px; margin-top:8px; }
+  .swatch { display:flex; flex-direction:column; align-items:center; gap:5px; }
+  .swatch-circle { width:44px; height:44px; border-radius:10px; border:2px solid var(--border); cursor:pointer; transition:transform 0.1s; }
+  .swatch-circle:hover { transform:scale(1.08); }
+  .swatch span { font-size:10px; color:var(--text-light); }
+
+  /* Panels */
+  .step-panel { display:none; }
+  .step-panel.active { display:block; animation:fadeIn 0.3s ease; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+  /* Responsive */
+  @media (max-width: 720px) {
+    .container { padding:24px 16px 60px; }
+    .form-grid { grid-template-columns:1fr; }
+    .progress-steps { display:none; }
+    .int-grid, .int-grid-3 { grid-template-columns:1fr; }
+    .module-cards { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== TOP BAR ===== -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo">Loop</div>
+    <div class="topbar-divider"></div>
+    <div class="topbar-label">Business Setup</div>
+  </div>
+  <div class="topbar-right">
+    <div class="save-status"><div class="save-dot"></div> Auto-saved</div>
+    <a class="help-link" href="#">Need help? Talk to us</a>
+  </div>
+</div>
+
+<!-- ===== PROGRESS STRIP ===== -->
+<div class="progress-strip">
+  <div class="progress-top">
+    <div class="progress-text" id="progress-label"><strong>Step 1 of 7</strong> &mdash; Verify Your Business</div>
+    <div class="progress-time" id="progress-time">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      ~12 min remaining
+    </div>
+  </div>
+  <div class="progress-bar-outer">
+    <div class="progress-bar-inner" id="progress-fill" style="width:14%"></div>
+  </div>
+  <div class="progress-steps" id="progress-dots">
+    <div class="p-step active" onclick="showStep('step1')"><div class="p-step-dot"></div><div class="p-step-label">Verify</div></div>
+    <div class="p-step" onclick="showStep('step2')"><div class="p-step-dot"></div><div class="p-step-label">Locations</div></div>
+    <div class="p-step" onclick="showStep('step3')"><div class="p-step-dot"></div><div class="p-step-label">Calendar</div></div>
+    <div class="p-step" onclick="showStep('step4')"><div class="p-step-dot"></div><div class="p-step-label">People</div></div>
+    <div class="p-step" onclick="showStep('step5')"><div class="p-step-dot"></div><div class="p-step-label">Costs</div></div>
+    <div class="p-step" onclick="showStep('step6')"><div class="p-step-dot"></div><div class="p-step-label">Brand</div></div>
+    <div class="p-step" onclick="showStep('step7')"><div class="p-step-dot"></div><div class="p-step-label">Integrations</div></div>
+  </div>
+</div>
+
+<!-- ===== MAIN CONTENT ===== -->
+<div class="container">
+
+  <!-- ========== STEP 1 ========== -->
+  <div id="step1" class="step-panel active">
+    <div class="step-header">
+      <div class="step-eyebrow">Step 1 of 7 <span class="step-time">~1 min</span></div>
+      <h1>Verify Your Business</h1>
+      <p>We've pulled this from your account setup. Just confirm everything looks right.</p>
+    </div>
+
+    <div class="prefill-banner">
+      <span class="pf-icon">&#9889;</span>
+      <div><strong>Already filled in.</strong> Your account executive provided these details. Review and correct anything that's off.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>Your Brands</h3>
+        <button class="btn btn-sm btn-ghost" onclick="addBrandRow()">+ Add Brand</button>
+      </div>
+      <div class="card-body" style="padding:0; overflow-x:auto;">
+        <table class="data-table">
+          <thead><tr><th>Brand</th><th>Type</th><th>Ownership</th><th>Corporate Entity</th><th>Locations</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>Dave's Hot Chicken</strong></td>
+              <td><span class="tag">Real</span></td>
+              <td>
+                <select class="fi prefilled" style="width:130px;">
+                  <option selected>Franchisee</option><option>Franchisor</option><option>Fully Owned</option><option>CPA</option>
+                </select>
+              </td>
+              <td><input class="fi prefilled" style="width:160px;" value="Dave's Hot Chicken Inc."></td>
+              <td>12</td>
+            </tr>
+            <tr>
+              <td><strong>Slim Chickens</strong></td>
+              <td><span class="tag">Real</span></td>
+              <td>
+                <select class="fi prefilled" style="width:130px;">
+                  <option selected>Franchisee</option><option>Franchisor</option><option>Fully Owned</option><option>CPA</option>
+                </select>
+              </td>
+              <td><input class="fi prefilled" style="width:160px;" value="Slim Chickens LLC"></td>
+              <td>8</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>Corporate Involvement</h3></div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="fg">
+            <label class="fl">Dave's Hot Chicken</label>
+            <select class="fi prefilled">
+              <option>None</option><option selected>Aware of deployment</option><option>Active participant</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label class="fl">Slim Chickens</label>
+            <select class="fi prefilled">
+              <option selected>None</option><option>Aware of deployment</option><option>Active participant</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <span style="font-size:12px;color:var(--text-light);">All changes auto-saved</span>
+        <button class="btn btn-primary" onclick="goTo('step2',2)">Looks good, continue &rarr;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== STEP 2 ========== -->
+  <div id="step2" class="step-panel">
+    <div class="step-header">
+      <div class="step-eyebrow">Step 2 of 7 <span class="step-time">~3 min</span></div>
+      <h1>Locations & Regions</h1>
+      <p>We pulled your locations from DoorDash and UberEats. Add your region groupings and open dates so we can track vintage and same-store performance.</p>
+    </div>
+
+    <div class="prefill-banner">
+      <span class="pf-icon">&#9889;</span>
+      <div><strong>20 locations auto-detected</strong> from your marketplace accounts. 12 mapped to Dave's, 8 to Slim Chickens.</div>
+    </div>
+
+    <div class="why-banner">
+      <span class="why-icon">&#9432;</span>
+      <div><strong>Why regions & open dates?</strong> Regions let you filter performance by market. Open dates determine which stores are eligible for same-store-sales comparisons. Both are used across every Loop module.</div>
+    </div>
+
+    <div class="card">
+      <div class="inner-tabs">
+        <div class="inner-tab active" onclick="switchLocTab('inline')">Edit Inline</div>
+        <div class="inner-tab" onclick="switchLocTab('bulk')">Bulk Upload (CSV)</div>
+      </div>
+      <div id="loc-inline">
+        <div class="card-body" style="padding:0; overflow-x:auto;">
+          <table class="data-table" style="min-width:780px;" id="loc-table">
+            <thead><tr><th>Location</th><th>Brand</th><th>Ownership</th><th>Region</th><th>Franchisee Group</th><th>Open Date</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>
+                  <strong>#101 Downtown Tampa</strong>
+                  <div style="font-size:11px;color:var(--text-light);">412 W Kennedy Blvd, Tampa FL</div>
+                </td>
+                <td><span class="tag">Dave's</span></td>
+                <td><select class="fi loc-ownership" style="width:105px;"><option>Corporate</option><option selected>Franchisee</option><option>Franchisor</option><option>Fully Owned</option><option>CPA</option></select></td>
+                <td><input class="fi loc-region" style="width:100px;" value="Florida" placeholder="e.g. Florida"></td>
+                <td><input class="fi" style="width:100px;" value="Tampa Bay" placeholder="e.g. Group A"></td>
+                <td><input type="date" class="fi" style="width:125px;" value="2024-03-15"></td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>#102 Westchase</strong>
+                  <div style="font-size:11px;color:var(--text-light);">9608 W Linebaugh Ave, Tampa FL</div>
+                </td>
+                <td><span class="tag">Dave's</span></td>
+                <td><select class="fi loc-ownership" style="width:105px;"><option>Corporate</option><option selected>Franchisee</option><option>Franchisor</option><option>Fully Owned</option><option>CPA</option></select></td>
+                <td><input class="fi loc-region" style="width:100px;" value="Florida"></td>
+                <td><input class="fi" style="width:100px;" value="Tampa Bay"></td>
+                <td><input type="date" class="fi" style="width:125px;" value="2024-06-01"></td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>#201 Midtown Atlanta</strong>
+                  <div style="font-size:11px;color:var(--text-light);">725 Ponce De Leon Ave, Atlanta GA</div>
+                </td>
+                <td><span class="tag">Slim Chickens</span></td>
+                <td><select class="fi loc-ownership" style="width:105px;"><option>Corporate</option><option selected>Franchisee</option><option>Franchisor</option><option>Fully Owned</option><option>CPA</option></select></td>
+                <td><input class="fi loc-region" style="width:100px;" value="Georgia"></td>
+                <td><input class="fi" style="width:100px;" value="Metro Atlanta"></td>
+                <td><input type="date" class="fi" style="width:125px;" value="2023-09-20"></td>
+              </tr>
+              <tr><td colspan="6" style="text-align:center;color:var(--text-light);font-size:12px;padding:14px;">+ 17 more locations</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card-footer">
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-sm btn-ghost" onclick="applyOwnershipToAll()">Apply "Franchisee" to all</button>
+            <button class="btn btn-sm btn-ghost" onclick="fillRegionFromFirst()">Fill Region from row 1</button>
+          </div>
+          <span></span>
+        </div>
+      </div>
+      <div id="loc-bulk" style="display:none;">
+        <div class="card-body">
+          <div class="upload-zone" onclick="document.getElementById('csv-file-input').click()">
+            <input type="file" id="csv-file-input" accept=".csv,.xlsx,.xls" style="display:none;" onchange="handleCSVUpload(this)">
+            <div style="font-size:28px;opacity:0.3;margin-bottom:8px;">&#8682;</div>
+            <div class="uz-text">Drop a CSV/Excel file here or <strong>click to browse</strong></div>
+            <div class="uz-hint" style="margin-top:8px;">Columns: Store#, Brand, Ownership, Region, FranchiseeGroup, OpenDate</div>
+          </div>
+          <div id="csv-upload-status" style="display:none;text-align:center;margin-top:12px;padding:12px;background:var(--green-soft);border-radius:var(--rs);font-size:13px;color:var(--green-text);"></div>
+          <div style="text-align:center;margin-top:12px;">
+            <button class="btn-link" onclick="downloadCSVTemplate()">Download CSV template</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;margin-top:20px;">
+      <button class="btn btn-ghost" onclick="goTo('step1',1)">&larr; Back</button>
+      <button class="btn btn-primary" onclick="goTo('step3',3)">Continue &rarr;</button>
+    </div>
+  </div>
+
+  <!-- ========== STEP 3 ========== -->
+  <div id="step3" class="step-panel">
+    <div class="step-header">
+      <div class="step-eyebrow">Step 3 of 7 <span class="step-time">~1 min</span></div>
+      <h1>Calendar & Comp Rules</h1>
+      <p>How do you measure time and which stores count as "comped" for same-store comparisons?</p>
+    </div>
+
+    <div class="why-banner">
+      <span class="why-icon">&#9432;</span>
+      <div><strong>Set once, used everywhere.</strong> Your fiscal calendar powers period reporting in Balance, campaign cycles in TruROI, and operational cadences in Ops. Comp rules determine SSS eligibility across all modules.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>Fiscal Calendar</h3></div>
+      <div class="card-body">
+        <div class="brand-pills">
+          <div class="brand-pill active">Dave's Hot Chicken</div>
+          <div class="brand-pill">Slim Chickens</div>
+        </div>
+        <div class="form-grid">
+          <div class="fg">
+            <label class="fl">Fiscal year starts in</label>
+            <select class="fi"><option selected>January</option><option>February</option><option>April</option><option>July</option><option>October</option></select>
+          </div>
+          <div class="fg">
+            <label class="fl">Period type</label>
+            <select class="fi"><option selected>Calendar Month</option><option>4-4-5</option><option>4-5-4</option><option>5-4-4</option><option>Custom (upload)</option></select>
+          </div>
+        </div>
+        <div class="toggle-row" style="margin-top:12px;">
+          <span class="toggle-label">Same calendar for all brands?</span>
+          <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>Comp Definition</h3></div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="fg">
+            <label class="fl">A store is "comped" after</label>
+            <select class="fi"><option selected>12 months from open date</option><option>18 months</option><option>Custom</option></select>
+            <span class="fi-hint">Newer stores are excluded from same-store-sales metrics</span>
+          </div>
+          <div class="fg">
+            <label class="fl">SSS eligibility</label>
+            <select class="fi"><option selected>Same as comp definition</option><option>Custom SSS rules</option></select>
+          </div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <button class="btn btn-ghost" onclick="goTo('step2',2)">&larr; Back</button>
+        <button class="btn btn-primary" onclick="goTo('step4',4)">Continue &rarr;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== STEP 4 ========== -->
+  <div id="step4" class="step-panel">
+    <div class="step-header">
+      <div class="step-eyebrow">Step 4 of 7 <span class="step-time">~2 min</span></div>
+      <h1>People & Decisions</h1>
+      <p>Who runs marketing, who should see reports, and how do campaigns get approved? This routes the right people to the right modules.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>Marketing Structure</h3></div>
+      <div class="card-body">
+        <div class="fg" style="margin-bottom:16px;">
+          <label class="fl">How is marketing managed today?</label>
+          <select class="fi prefilled" style="max-width:380px;">
+            <option>We manage it ourselves</option>
+            <option selected>We work with marketplace reps</option>
+            <option>Agency handles it</option>
+            <option>Corporate runs national campaigns</option>
+            <option>Co-op (corporate + local)</option>
+          </select>
+          <span class="fi-hint">Pre-filled from your AE. Change if needed.</span>
+        </div>
+        <div class="toggle-row">
+          <span class="toggle-label">Does corporate run national campaigns that affect your stores?</span>
+          <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="toggle-row">
+          <span class="toggle-label">Can you opt out of national campaigns?</span>
+          <div class="toggle" onclick="this.classList.toggle('on')"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>Key People</h3>
+        <button class="btn btn-sm btn-ghost" onclick="addPersonRow()">+ Add person</button>
+      </div>
+      <div class="card-body" style="padding:0; overflow-x:auto;">
+        <table class="data-table">
+          <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Brands</th><th>Reports</th><th>Decisions</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><input class="fi prefilled" value="Marcus Johnson"></td>
+              <td><input class="fi prefilled" value="marcus@example.com"></td>
+              <td><select class="fi" style="width:120px;"><option>Owner</option><option selected>Marketing</option><option>Operations</option><option>Finance</option></select></td>
+              <td><span class="tag">All</span></td>
+              <td style="text-align:center;"><input type="checkbox" checked></td>
+              <td style="text-align:center;"><input type="checkbox" checked></td>
+            </tr>
+            <tr>
+              <td><input class="fi" value="Sarah Chen"></td>
+              <td><input class="fi" value="sarah@example.com"></td>
+              <td><select class="fi" style="width:120px;"><option selected>Owner</option><option>Marketing</option><option>Operations</option><option>Finance</option></select></td>
+              <td><span class="tag">All</span></td>
+              <td style="text-align:center;"><input type="checkbox" checked></td>
+              <td style="text-align:center;"><input type="checkbox"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card-footer">
+        <span>
+          <input type="file" id="people-csv-input" accept=".csv,.xlsx" style="display:none;" onchange="handlePeopleCSV(this)">
+          <button class="btn-link" onclick="document.getElementById('people-csv-input').click()">Upload a list (CSV)</button>
+        </span>
+        <button class="btn btn-primary" onclick="goTo('step5',5)">Continue &rarr;</button>
+      </div>
+    </div>
+
+    <div class="uses-strip">
+      <div class="uses-label">This determines</div>
+      <span class="use-tag">Who gets TruROI setup link</span>
+      <span class="use-tag">Balance module access</span>
+      <span class="use-tag">Report email distribution</span>
+      <span class="use-tag">Campaign approval authority</span>
+    </div>
+  </div>
+
+  <!-- ========== STEP 5 ========== -->
+  <div id="step5" class="step-panel">
+    <div class="step-header">
+      <div class="step-eyebrow">Step 5 of 7 <span class="step-time">~2 min</span></div>
+      <h1>Cost Structure</h1>
+      <p>A rough breakdown of your costs per brand. This powers ROI calculations and flow-through analysis across all modules.</p>
+    </div>
+
+    <div class="why-banner">
+      <span class="why-icon">&#9432;</span>
+      <div><strong>Rough estimates are perfectly fine.</strong> We use these to ensure every dollar of marketing spend is profitable. You can always refine later under Settings.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>Costs by Brand</h3></div>
+      <div class="card-body">
+        <div class="brand-pills" style="margin-bottom:20px;">
+          <div class="brand-pill active">Dave's Hot Chicken</div>
+          <div class="brand-pill">Slim Chickens</div>
+        </div>
+        <div class="form-grid">
+          <div class="fg">
+            <label class="fl">Food Costs</label>
+            <div class="fi-suffix-wrap"><input class="fi" placeholder="e.g. 30" value="32"><span class="fi-suffix">%</span></div>
+            <span class="fi-hint">Ingredients as % of revenue</span>
+          </div>
+          <div class="fg">
+            <label class="fl">Packaging</label>
+            <div class="fi-suffix-wrap"><input class="fi" placeholder="e.g. 5" value="6"><span class="fi-suffix">%</span></div>
+          </div>
+          <div class="fg">
+            <label class="fl">Royalty <span class="opt">franchisee</span></label>
+            <div class="fi-suffix-wrap"><input class="fi" placeholder="e.g. 6" value="5"><span class="fi-suffix">%</span></div>
+          </div>
+          <div class="fg">
+            <label class="fl">Ad Fund <span class="opt">franchisee</span></label>
+            <div class="fi-suffix-wrap"><input class="fi" placeholder="e.g. 3" value="3"><span class="fi-suffix">%</span></div>
+          </div>
+          <div class="fg">
+            <label class="fl">Labour</label>
+            <div class="fi-suffix-wrap"><input class="fi" placeholder="e.g. 28" value="27"><span class="fi-suffix">%</span></div>
+          </div>
+          <div class="fg">
+            <label class="fl">Rent / Occupancy</label>
+            <div class="fi-suffix-wrap"><input class="fi" placeholder="e.g. 8" value="9"><span class="fi-suffix">%</span></div>
+          </div>
+          <div class="fg">
+            <label class="fl">Facilities <span class="opt">optional</span></label>
+            <div class="fi-suffix-wrap"><input class="fi" placeholder="e.g. 4"><span class="fi-suffix">%</span></div>
+          </div>
+          <div class="fg">
+            <label class="fl">Other <span class="opt">optional</span></label>
+            <div class="fi-suffix-wrap"><input class="fi" placeholder="e.g. 3"><span class="fi-suffix">%</span></div>
+          </div>
+
+          <div class="full">
+            <div class="summary-row">
+              <span class="sr-label">Total Costs / Implied Margin</span>
+              <span class="sr-value">82% costs &middot; 18% margin</span>
+            </div>
+          </div>
+
+          <div class="full">
+            <div class="toggle-row"><span class="toggle-label">Same costs across all brands?</span><div class="toggle" onclick="this.classList.toggle('on')"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>Marketing Budget <span style="font-size:11px;font-weight:400;color:var(--text-light);margin-left:8px;">optional</span></h3></div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="fg">
+            <label class="fl">Annual budget</label>
+            <div class="fi-suffix-wrap"><input class="fi" placeholder="e.g. 120000" value="150000"><span class="fi-suffix">$</span></div>
+          </div>
+          <div class="fg">
+            <label class="fl">Budget scope</label>
+            <select class="fi"><option selected>All platforms combined</option><option>By platform</option><option>By Ads vs Promos</option><option>By location</option></select>
+          </div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <button class="btn btn-ghost" onclick="goTo('step4',4)">&larr; Back</button>
+        <div style="display:flex;gap:12px;align-items:center;">
+          <button class="btn-link">Skip for now</button>
+          <button class="btn btn-primary" onclick="goTo('step6',6)">Continue &rarr;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== STEP 6 ========== -->
+  <div id="step6" class="step-panel">
+    <div class="step-header">
+      <div class="step-eyebrow">Step 6 of 7 <span class="step-time">~1 min</span></div>
+      <h1>Brand Identity</h1>
+      <p>Your logo, colors, and report style. Used for branded reports and communications across all modules.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="brand-pills" style="margin-bottom:20px;">
+          <div class="brand-pill active">Dave's Hot Chicken</div>
+          <div class="brand-pill">Slim Chickens</div>
+        </div>
+        <div class="form-grid">
+          <div class="fg">
+            <label class="fl">Brand Logo</label>
+            <div id="logo-upload-zone" class="upload-zone" style="padding:16px;position:relative;" onclick="document.getElementById('logo-file-input').click()">
+              <input type="file" id="logo-file-input" accept="image/*" style="display:none;" onchange="handleLogoUpload(this)">
+              <div id="logo-preview" style="margin-bottom:8px;">
+                <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" style="border-radius:12px;border:2px solid var(--border);background:white;">
+                  <rect width="80" height="80" rx="12" fill="#FFF5F5"/>
+                  <text x="40" y="32" text-anchor="middle" font-size="24" font-weight="800" fill="#e63946">D</text>
+                  <text x="40" y="50" text-anchor="middle" font-size="8" font-weight="700" fill="#e63946" letter-spacing="1">DAVE'S HOT</text>
+                  <text x="40" y="60" text-anchor="middle" font-size="8" font-weight="700" fill="#e63946" letter-spacing="1">CHICKEN</text>
+                </svg>
+              </div>
+              <div style="font-size:11px;color:var(--green-text);font-weight:600;margin-bottom:2px;">Auto-detected from website</div>
+              <div class="uz-text" style="font-size:12px;">Click to upload a higher-res version</div>
+            </div>
+          </div>
+          <div class="fg">
+            <label class="fl">Brand Colors</label>
+            <div class="swatch-row">
+              <div class="swatch"><div class="swatch-circle" style="background:#e63946;"></div><span>Primary</span></div>
+              <div class="swatch"><div class="swatch-circle" style="background:#1d3557;"></div><span>Secondary</span></div>
+              <div class="swatch"><div class="swatch-circle" style="background:#f1faee;"></div><span>Accent</span></div>
+            </div>
+            <span class="fi-hint" style="margin-top:10px;">Auto-extracted. Click any swatch to change.</span>
+          </div>
+          <div class="fg">
+            <label class="fl">Report Template <span class="opt">optional</span></label>
+            <div class="upload-zone" style="padding:16px;" onclick="document.getElementById('template-file-input').click()" id="template-upload-zone">
+              <input type="file" id="template-file-input" accept=".pptx,.pdf,.ppt" style="display:none;" onchange="handleTemplateUpload(this)">
+              <div id="template-status">
+                <div class="uz-text" style="font-size:12px;">Upload PPTX or PDF</div>
+                <div class="uz-hint">For branded performance decks</div>
+              </div>
+            </div>
+          </div>
+          <div class="fg">
+            <label class="fl">AI Persona Name <span class="opt">optional</span></label>
+            <input class="fi" placeholder="e.g. Dave Z, ChickenBot">
+            <span class="fi-hint">Name your Loop AI assistant. We'll suggest one if blank.</span>
+          </div>
+          <div class="fg">
+            <label class="fl">Website</label>
+            <input class="fi prefilled" value="https://daveshotchicken.com">
+          </div>
+          <div class="fg">
+            <label class="fl">LinkedIn</label>
+            <input class="fi prefilled" value="https://linkedin.com/company/daves-hot-chicken">
+          </div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <button class="btn btn-ghost" onclick="goTo('step5',5)">&larr; Back</button>
+        <button class="btn btn-primary" onclick="goTo('step7',7)">Continue &rarr;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== STEP 7 ========== -->
+  <div id="step7" class="step-panel">
+    <div class="step-header">
+      <div class="step-eyebrow">Step 7 of 7 <span class="step-time">~2 min</span></div>
+      <h1>Integrations</h1>
+      <p>Connect your tools. Alerts, approvals, and data feeds flow through these across all modules.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>Communication</h3></div>
+      <div class="card-body">
+        <div class="int-grid">
+          <div class="int-card">
+            <div class="int-card-info"><h4>Slack</h4><p>Alerts, reports, approvals</p></div>
+            <button class="btn btn-sm btn-primary">Connect</button>
+          </div>
+          <div class="int-card">
+            <div class="int-card-info"><h4>Microsoft Teams</h4><p>Alerts, reports, approvals</p></div>
+            <button class="btn btn-sm btn-ghost">Connect</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>Data Connectors</h3></div>
+      <div class="card-body">
+        <div class="int-grid-3">
+          <div class="conn-card">
+            <div style="font-size:20px;">&#9634;</div>
+            <h4>POS</h4>
+            <p>Toast, Square, Aloha</p>
+          </div>
+          <div class="conn-card">
+            <div style="font-size:20px;">&#9634;</div>
+            <h4>Accounting</h4>
+            <p>QuickBooks, Xero</p>
+          </div>
+          <div class="conn-card">
+            <div style="font-size:20px;">&#9634;</div>
+            <h4>Other</h4>
+            <p>CRM, Loyalty, Inventory</p>
+          </div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <button class="btn btn-ghost" onclick="goTo('step6',6)">&larr; Back</button>
+        <div style="display:flex;gap:12px;align-items:center;">
+          <button class="btn-link">Skip &mdash; I'll do this later</button>
+          <button class="btn btn-primary" onclick="goTo('complete',8)">Finish Setup &rarr;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== COMPLETE ========== -->
+  <div id="complete" class="step-panel">
+    <div class="complete-wrap">
+      <div class="complete-icon">&#10003;</div>
+      <h1>You're all set</h1>
+      <p>Your business profile is configured. Every module now has what it needs to get you started.</p>
+
+      <div class="module-cards">
+        <div class="mod-card ready">
+          <h4><span class="sd green"></span>TruROI+ &rarr;</h4>
+          <p>Ready. Setup link sent to marcus@example.com</p>
+        </div>
+        <div class="mod-card ready">
+          <h4><span class="sd green"></span>Balance &rarr;</h4>
+          <p>Ready. Calendar + costs configured.</p>
+        </div>
+        <div class="mod-card">
+          <h4><span class="sd orange"></span>Protect</h4>
+          <p>Connect Slack to enable real-time alerts.</p>
+        </div>
+        <div class="mod-card" style="opacity:0.45;">
+          <h4>Ops</h4>
+          <p>Not in your current plan.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ===== LOCATION TAB SWITCHING =====
+function switchLocTab(tab) {
+  const tabs = document.querySelectorAll('#step2 .inner-tab');
+  tabs.forEach(t => t.classList.remove('active'));
+  if (tab === 'inline') {
+    tabs[0].classList.add('active');
+    document.getElementById('loc-inline').style.display = '';
+    document.getElementById('loc-bulk').style.display = 'none';
+  } else {
+    tabs[1].classList.add('active');
+    document.getElementById('loc-inline').style.display = 'none';
+    document.getElementById('loc-bulk').style.display = '';
+  }
+}
+
+// ===== BULK CSV UPLOAD =====
+function handleCSVUpload(input) {
+  if (input.files && input.files[0]) {
+    const name = input.files[0].name;
+    const status = document.getElementById('csv-upload-status');
+    status.style.display = 'block';
+    status.innerHTML = '<strong>' + name + '</strong> uploaded successfully. Locations will be merged with existing data.';
+  }
+}
+
+function downloadCSVTemplate() {
+  const csv = 'Store#,Brand,Ownership,Region,FranchiseeGroup,OpenDate\n101,Dave\'s Hot Chicken,Franchisee,Florida,Tampa Bay,2024-03-15\n201,Slim Chickens,Franchisee,Georgia,Metro Atlanta,2023-09-20';
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'loop-locations-template.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ===== APPLY OWNERSHIP TO ALL =====
+function applyOwnershipToAll() {
+  document.querySelectorAll('.loc-ownership').forEach(sel => { sel.value = 'Franchisee'; });
+}
+
+// ===== FILL REGION FROM FIRST ROW =====
+function fillRegionFromFirst() {
+  const regions = document.querySelectorAll('.loc-region');
+  if (regions.length > 0) {
+    const val = regions[0].value;
+    regions.forEach(r => { if (!r.value) r.value = val; });
+  }
+}
+
+// ===== ADD BRAND ROW =====
+let brandCount = 2;
+function addBrandRow() {
+  brandCount++;
+  const tbody = document.querySelector('#step1 .data-table tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = '<td><input class="fi" style="width:140px;" placeholder="Brand name"></td>' +
+    '<td><select class="fi" style="width:80px;padding:6px 8px;font-size:12px;"><option selected>Real</option><option>Virtual</option></select></td>' +
+    '<td><select class="fi" style="width:130px;padding:6px 10px;font-size:12px;"><option>Franchisee</option><option>Franchisor</option><option>Fully Owned</option><option>CPA</option></select></td>' +
+    '<td><input class="fi" style="width:160px;" placeholder="Corporate entity"></td>' +
+    '<td><input class="fi" style="width:50px;" placeholder="#"></td>';
+  tbody.appendChild(tr);
+}
+
+// ===== ADD PERSON ROW =====
+function addPersonRow() {
+  const tbody = document.querySelector('#step4 .data-table tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = '<td><input class="fi" placeholder="Full name"></td>' +
+    '<td><input class="fi" placeholder="email@company.com"></td>' +
+    '<td><select class="fi" style="width:120px;"><option>Owner</option><option>Marketing</option><option>Operations</option><option>Finance</option><option>Store Manager</option><option>Executive</option></select></td>' +
+    '<td><span class="tag">All</span></td>' +
+    '<td style="text-align:center;"><input type="checkbox"></td>' +
+    '<td style="text-align:center;"><input type="checkbox"></td>';
+  tbody.appendChild(tr);
+  // scroll to new row
+  tr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// ===== LOGO UPLOAD =====
+function handleLogoUpload(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      document.getElementById('logo-preview').innerHTML =
+        '<img src="' + e.target.result + '" style="max-width:80px;max-height:80px;border-radius:12px;border:2px solid var(--border);">';
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+// ===== BRAND PILL SWITCHING =====
+document.addEventListener('click', function(e) {
+  if (e.target.classList.contains('brand-pill')) {
+    const parent = e.target.closest('.brand-pills');
+    if (parent) {
+      parent.querySelectorAll('.brand-pill').forEach(p => p.classList.remove('active'));
+      e.target.classList.add('active');
+    }
+  }
+});
+
+// ===== STEP NAVIGATION =====
+const stepData = {
+  step1: { num:1, label:'Verify Your Business', pct:14, remaining:'~12 min remaining' },
+  step2: { num:2, label:'Locations & Regions', pct:28, remaining:'~10 min remaining' },
+  step3: { num:3, label:'Calendar & Comp Rules', pct:43, remaining:'~8 min remaining' },
+  step4: { num:4, label:'People & Decisions', pct:57, remaining:'~6 min remaining' },
+  step5: { num:5, label:'Cost Structure', pct:71, remaining:'~4 min remaining' },
+  step6: { num:6, label:'Brand Identity', pct:86, remaining:'~2 min remaining' },
+  step7: { num:7, label:'Integrations', pct:95, remaining:'~1 min remaining' },
+  complete: { num:8, label:'Complete', pct:100, remaining:'Done!' }
+};
+
+function goTo(id, stepNum) {
+  showStep(id);
+}
+
+function showStep(id) {
+  document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+
+  const data = stepData[id];
+  if (!data) return;
+
+  // Update progress bar
+  document.getElementById('progress-fill').style.width = data.pct + '%';
+  document.getElementById('progress-label').innerHTML = data.num <= 7
+    ? '<strong>Step ' + data.num + ' of 7</strong> &mdash; ' + data.label
+    : '<strong>Complete</strong>';
+  document.getElementById('progress-time').innerHTML = data.num <= 7
+    ? '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>' + data.remaining
+    : '&#10003; All done';
+
+  // Update dots
+  const dots = document.querySelectorAll('.p-step');
+  dots.forEach((dot, i) => {
+    dot.classList.remove('active', 'done');
+    if (i < data.num - 1) dot.classList.add('done');
+    if (i === data.num - 1) dot.classList.add('active');
+    if (data.num === 8) dot.classList.add('done'); // all done
+  });
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ===== PEOPLE CSV UPLOAD =====
+function handlePeopleCSV(input) {
+  if (input.files && input.files[0]) {
+    const name = input.files[0].name;
+    const tbody = document.querySelector('#step4 .data-table tbody');
+    // Add sample rows to show it "imported"
+    const samplePeople = [
+      { name: 'James Park', email: 'james@example.com', role: 'Operations' },
+      { name: 'Lisa Tran', email: 'lisa@example.com', role: 'Finance' }
+    ];
+    samplePeople.forEach(p => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<td><input class="fi" value="' + p.name + '"></td>' +
+        '<td><input class="fi" value="' + p.email + '"></td>' +
+        '<td><select class="fi" style="width:120px;"><option' + (p.role==='Owner'?' selected':'') + '>Owner</option><option' + (p.role==='Marketing'?' selected':'') + '>Marketing</option><option' + (p.role==='Operations'?' selected':'') + '>Operations</option><option' + (p.role==='Finance'?' selected':'') + '>Finance</option><option>Store Manager</option><option>Executive</option></select></td>' +
+        '<td><span class="tag">All</span></td>' +
+        '<td style="text-align:center;"><input type="checkbox" checked></td>' +
+        '<td style="text-align:center;"><input type="checkbox"></td>';
+      tr.style.animation = 'fadeIn 0.3s ease';
+      tbody.appendChild(tr);
+    });
+    alert('Imported 2 people from ' + name);
+  }
+}
+
+// ===== TEMPLATE UPLOAD =====
+function handleTemplateUpload(input) {
+  if (input.files && input.files[0]) {
+    const name = input.files[0].name;
+    document.getElementById('template-status').innerHTML =
+      '<div style="font-size:13px;color:var(--green-text);font-weight:600;">' + name + '</div>' +
+      '<div style="font-size:11px;color:var(--text-light);margin-top:4px;">Uploaded. Click to replace.</div>';
+  }
+}
+</script>
+
+</body>
+</html>
