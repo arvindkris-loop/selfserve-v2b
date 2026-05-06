@@ -1,0 +1,1508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loop — Business Setup (Agentic)</title>
+<style>
+  :root {
+    --bg: #f7f8fa;
+    --white: #ffffff;
+    --text: #1a1a2e;
+    --text-sec: #5a5d7a;
+    --text-light: #9496ad;
+    --border: #e8eaef;
+    --border-focus: #7c6cf0;
+    --accent: #6c5ce7;
+    --accent-soft: #f0eeff;
+    --accent-text: #5b4cdb;
+    --green: #10b981;
+    --green-soft: #ecfdf5;
+    --green-text: #059669;
+    --orange: #f59e0b;
+    --orange-soft: #fffbeb;
+    --blue: #3b82f6;
+    --blue-soft: #eff6ff;
+    --agent-bg: #ffffff;
+    --user-bg: #6c5ce7;
+    --user-text: #ffffff;
+    --r: 16px;
+    --rs: 10px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.06);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ===== LAYOUT: sidebar + chat ===== */
+  .layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    height: 100vh;
+  }
+
+  /* ===== SIDEBAR ===== */
+  .sidebar {
+    background: var(--white);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .sidebar-header {
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar-logo { font-size: 17px; font-weight: 800; color: var(--accent); letter-spacing: -0.5px; }
+  .sidebar-subtitle { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+
+  .sidebar-progress {
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sp-label { font-size: 12px; color: var(--text-sec); margin-bottom: 8px; display: flex; justify-content: space-between; }
+  .sp-bar { height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .sp-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #a78bfa); border-radius: 3px; transition: width 0.6s ease; }
+  .sp-time { font-size: 11px; color: var(--text-light); margin-top: 8px; display: flex; align-items: center; gap: 5px; }
+
+  .sidebar-steps { padding: 12px 0; flex: 1; }
+  .sb-step {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background 0.15s;
+    font-size: 13px;
+    color: var(--text-light);
+  }
+  .sb-step:hover { background: var(--bg); }
+  .sb-step.active { color: var(--accent-text); font-weight: 600; background: var(--accent-soft); }
+  .sb-step.done { color: var(--green-text); }
+  .sb-step-dot {
+    width: 24px; height: 24px; border-radius: 50%;
+    border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; flex-shrink: 0;
+    transition: all 0.2s;
+  }
+  .sb-step.active .sb-step-dot { border-color: var(--accent); background: var(--accent); color: white; }
+  .sb-step.done .sb-step-dot { border-color: var(--green); background: var(--green); color: white; }
+
+  .sidebar-footer {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text-light);
+  }
+  .sidebar-footer a { color: var(--accent-text); text-decoration: none; }
+  .sidebar-footer a:hover { text-decoration: underline; }
+
+  /* ===== CHAT AREA ===== */
+  .chat-area {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: var(--bg);
+  }
+
+  .chat-header {
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .ch-left { display: flex; align-items: center; gap: 12px; }
+  .ch-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), #a78bfa);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 800; font-size: 14px;
+  }
+  .ch-name { font-size: 14px; font-weight: 600; }
+  .ch-status { font-size: 11px; color: var(--green-text); display: flex; align-items: center; gap: 4px; }
+  .ch-status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+  .ch-right { display: flex; align-items: center; gap: 14px; }
+  .ch-save { font-size: 12px; color: var(--green-text); display: flex; align-items: center; gap: 5px; }
+  .ch-save-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+
+  /* ===== MESSAGES ===== */
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    scroll-behavior: smooth;
+  }
+
+  .msg-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+  .msg-group.agent { align-items: flex-start; }
+  .msg-group.user { align-items: flex-end; }
+
+  .msg-sender {
+    font-size: 11px; font-weight: 600; color: var(--text-light);
+    margin-bottom: 2px; margin-left: 4px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .msg-group.user .msg-sender { margin-right: 4px; margin-left: 0; }
+
+  .msg {
+    max-width: 580px;
+    padding: 12px 16px;
+    border-radius: 16px;
+    font-size: 14px;
+    line-height: 1.6;
+    animation: msgIn 0.3s ease;
+  }
+  @keyframes msgIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+  .msg.agent {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 16px 16px 16px 4px;
+    color: var(--text);
+  }
+  .msg.user {
+    background: var(--user-bg);
+    color: var(--user-text);
+    border-radius: 16px 16px 4px 16px;
+  }
+
+  .msg strong { font-weight: 600; }
+  .msg a { color: var(--accent-text); }
+  .msg.user a { color: #c8c0ff; }
+
+  /* ===== RICH CARDS inside agent messages ===== */
+  .msg-card {
+    max-width: 580px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    overflow: hidden;
+    animation: msgIn 0.3s ease;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .mc-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .mc-header h4 { font-size: 13px; font-weight: 600; }
+  .mc-tag { font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+  .mc-tag.prefill { background: var(--green-soft); color: var(--green-text); }
+  .mc-tag.info { background: var(--blue-soft); color: var(--blue); }
+
+  .mc-body { padding: 14px 16px; }
+  .mc-footer {
+    padding: 10px 16px;
+    border-top: 1px solid var(--border);
+    background: var(--bg);
+    display: flex; gap: 8px; flex-wrap: wrap;
+  }
+
+  /* Mini table inside cards */
+  .mc-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .mc-table th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-light); font-weight: 600; padding: 6px 0; border-bottom: 1px solid var(--border); }
+  .mc-table td { padding: 8px 0; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .mc-table tr:last-child td { border: none; }
+  .mc-table .fi { padding: 5px 8px; font-size: 12px; width: 100%; }
+
+  /* Form elements inside cards */
+  .mc-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .mc-fg { display: flex; flex-direction: column; gap: 4px; }
+  .mc-fg.full { grid-column: 1 / -1; }
+  .mc-fl { font-size: 11px; font-weight: 600; color: var(--text-sec); }
+  .fi {
+    padding: 8px 12px;
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 13px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    font-family: inherit;
+  }
+  .fi:focus { outline: none; border-color: var(--border-focus); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .fi.prefilled { border-color: rgba(16,185,129,0.35); background: rgba(16,185,129,0.03); }
+  select.fi {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239496ad'%3E%3Cpath d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 28px;
+    cursor: pointer;
+  }
+
+  .tag { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 5px; font-size: 11px; font-weight: 500; background: var(--bg); border: 1px solid var(--border); color: var(--text-sec); }
+
+  /* Toggle */
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; }
+  .toggle-label { font-size: 12px; color: var(--text-sec); }
+  .toggle { width: 36px; height: 20px; background: var(--border); border-radius: 10px; position: relative; cursor: pointer; transition: background 0.2s; flex-shrink: 0; }
+  .toggle.on { background: var(--accent); }
+  .toggle::after { content:''; position:absolute; width:14px; height:14px; border-radius:50%; background:white; top:3px; left:3px; transition:transform 0.2s; box-shadow:0 1px 3px rgba(0,0,0,0.15); }
+  .toggle.on::after { transform: translateX(16px); }
+
+  /* Upload zone */
+  .mc-upload {
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    padding: 20px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    background: var(--bg);
+  }
+  .mc-upload:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .mc-upload-text { font-size: 12px; color: var(--text-sec); }
+  .mc-upload-text strong { color: var(--accent-text); }
+
+  /* Swatch */
+  .swatch-row { display: flex; gap: 10px; }
+  .swatch { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .swatch-circle { width: 36px; height: 36px; border-radius: 8px; border: 2px solid var(--border); cursor: pointer; transition: transform 0.1s; }
+  .swatch-circle:hover { transform: scale(1.08); }
+  .swatch span { font-size: 9px; color: var(--text-light); }
+
+  /* Summary row */
+  .mc-summary {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-top: 10px;
+  }
+  .mc-summary .label { font-size: 12px; font-weight: 600; color: var(--text-sec); }
+  .mc-summary .value { font-size: 15px; font-weight: 700; color: var(--accent); }
+
+  /* Integration cards inside chat */
+  .mc-int-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .mc-int-card {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    transition: border-color 0.15s;
+    cursor: pointer;
+  }
+  .mc-int-card:hover { border-color: var(--accent); }
+  .mc-int-card h5 { font-size: 12px; font-weight: 600; }
+  .mc-int-card p { font-size: 10px; color: var(--text-light); }
+
+  .mc-conn-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .mc-conn-card {
+    padding: 14px 10px; border: 1.5px solid var(--border); border-radius: 8px;
+    text-align: center; cursor: pointer; transition: all 0.15s;
+  }
+  .mc-conn-card:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .mc-conn-card h5 { font-size: 12px; font-weight: 600; margin: 4px 0 2px; }
+  .mc-conn-card p { font-size: 10px; color: var(--text-light); }
+
+  /* ===== QUICK REPLIES ===== */
+  .quick-replies {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    max-width: 580px;
+    animation: msgIn 0.3s ease;
+    margin-bottom: 8px;
+  }
+  .qr-btn {
+    padding: 8px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    background: var(--white);
+    color: var(--text-sec);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .qr-btn:hover { border-color: var(--accent); color: var(--accent-text); background: var(--accent-soft); }
+  .qr-btn.primary { border-color: var(--accent); color: var(--accent-text); background: var(--accent-soft); }
+
+  /* ===== TYPING INDICATOR ===== */
+  .typing-indicator {
+    display: flex; align-items: center; gap: 4px;
+    padding: 12px 16px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 16px 16px 16px 4px;
+    max-width: 80px;
+    animation: msgIn 0.3s ease;
+  }
+  .typing-dot {
+    width: 7px; height: 7px; border-radius: 50%; background: var(--text-light);
+    animation: typingBounce 1.4s ease-in-out infinite;
+  }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes typingBounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-4px); opacity: 1; }
+  }
+
+  /* ===== INPUT BAR ===== */
+  .chat-input-bar {
+    padding: 16px 28px 20px;
+    background: var(--white);
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 6px 8px 6px 16px;
+    transition: border-color 0.15s;
+  }
+  .input-wrap:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .input-wrap input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    color: var(--text);
+    font-family: inherit;
+    outline: none;
+  }
+  .input-wrap input::placeholder { color: var(--text-light); }
+  .send-btn {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: var(--accent);
+    border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+    flex-shrink: 0;
+  }
+  .send-btn:hover { background: #5b4cdb; }
+  .send-btn svg { width: 16px; height: 16px; }
+  .input-hint { font-size: 11px; color: var(--text-light); margin-top: 6px; text-align: center; }
+
+  /* ===== MODULE CARDS (completion) ===== */
+  .mc-modules { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .mc-mod {
+    padding: 14px; border: 1.5px solid var(--border); border-radius: 10px;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .mc-mod:hover { border-color: var(--accent); box-shadow: var(--shadow-md); }
+  .mc-mod.ready { border-color: var(--green); }
+  .mc-mod h5 { font-size: 12px; font-weight: 600; margin-bottom: 2px; }
+  .mc-mod.ready h5 { color: var(--green-text); }
+  .mc-mod p { font-size: 11px; color: var(--text-light); }
+  .sd { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+  .sd.green { background: var(--green); }
+  .sd.orange { background: var(--orange); }
+
+  /* Btn in cards */
+  .btn { padding: 7px 16px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; font-family: inherit; }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover { background: #5b4cdb; }
+  .btn-ghost { background: var(--white); color: var(--text-sec); border: 1.5px solid var(--border); }
+  .btn-ghost:hover { border-color: var(--text-light); }
+  .btn-sm { padding: 5px 12px; font-size: 11px; }
+  .btn-link { background: none; border: none; color: var(--accent-text); font-size: 11px; cursor: pointer; font-weight: 500; font-family: inherit; }
+  .btn-link:hover { text-decoration: underline; }
+
+  /* Why / prefill banners inside cards */
+  .mc-banner {
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    display: flex; gap: 8px; align-items: flex-start;
+    margin-bottom: 12px;
+  }
+  .mc-banner.prefill { background: var(--green-soft); color: var(--green-text); border: 1px solid rgba(16,185,129,0.15); }
+  .mc-banner.info { background: var(--accent-soft); color: var(--accent-text); border: 1px solid rgba(108,92,231,0.12); }
+  .mc-banner .b-icon { font-size: 14px; flex-shrink: 0; }
+
+  /* Timestamp */
+  .msg-time { font-size: 10px; color: var(--text-light); margin-top: 4px; margin-left: 4px; }
+  .msg-group.user .msg-time { margin-right: 4px; margin-left: 0; text-align: right; }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 800px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .mc-form-grid { grid-template-columns: 1fr; }
+    .mc-int-grid { grid-template-columns: 1fr; }
+    .mc-conn-grid { grid-template-columns: 1fr 1fr; }
+    .mc-modules { grid-template-columns: 1fr; }
+    .msg, .msg-card, .quick-replies { max-width: 90%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ===== SIDEBAR ===== -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">Loop</div>
+      <div class="sidebar-subtitle">Business Setup Agent</div>
+    </div>
+
+    <div class="sidebar-progress">
+      <div class="sp-label">
+        <span id="sp-step-label">Step 1 of 7</span>
+        <span id="sp-pct">14%</span>
+      </div>
+      <div class="sp-bar"><div class="sp-fill" id="sp-fill" style="width:14%"></div></div>
+      <div class="sp-time" id="sp-time">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        ~12 min remaining
+      </div>
+    </div>
+
+    <div class="sidebar-steps" id="sidebar-steps">
+      <div class="sb-step active" data-step="1" onclick="jumpToStep(1)">
+        <div class="sb-step-dot">1</div>
+        <span>Verify Business</span>
+      </div>
+      <div class="sb-step" data-step="2" onclick="jumpToStep(2)">
+        <div class="sb-step-dot">2</div>
+        <span>Locations & Regions</span>
+      </div>
+      <div class="sb-step" data-step="3" onclick="jumpToStep(3)">
+        <div class="sb-step-dot">3</div>
+        <span>Calendar & Comp</span>
+      </div>
+      <div class="sb-step" data-step="4" onclick="jumpToStep(4)">
+        <div class="sb-step-dot">4</div>
+        <span>People & Decisions</span>
+      </div>
+      <div class="sb-step" data-step="5" onclick="jumpToStep(5)">
+        <div class="sb-step-dot">5</div>
+        <span>Cost Structure</span>
+      </div>
+      <div class="sb-step" data-step="6" onclick="jumpToStep(6)">
+        <div class="sb-step-dot">6</div>
+        <span>Brand Identity</span>
+      </div>
+      <div class="sb-step" data-step="7" onclick="jumpToStep(7)">
+        <div class="sb-step-dot">7</div>
+        <span>Integrations</span>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      All changes auto-saved<br>
+      <a href="#">Need help? Talk to us</a>
+    </div>
+  </div>
+
+  <!-- ===== CHAT AREA ===== -->
+  <div class="chat-area">
+
+    <div class="chat-header">
+      <div class="ch-left">
+        <div class="ch-avatar">L</div>
+        <div>
+          <div class="ch-name">Loop Setup Agent</div>
+          <div class="ch-status"><div class="ch-status-dot"></div> Online</div>
+        </div>
+      </div>
+      <div class="ch-right">
+        <div class="ch-save"><div class="ch-save-dot"></div> Auto-saved</div>
+      </div>
+    </div>
+
+    <div class="chat-messages" id="chat-messages">
+      <!-- Messages injected by JS -->
+    </div>
+
+    <div class="chat-input-bar">
+      <div class="input-wrap">
+        <input type="text" id="user-input" placeholder="Type a message or use the buttons above..." onkeydown="if(event.key==='Enter')sendUserMessage()">
+        <button class="send-btn" onclick="sendUserMessage()">
+          <svg fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg>
+        </button>
+      </div>
+      <div class="input-hint">Press Enter to send. The agent guides you step-by-step.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== STATE =====
+let currentStep = 0; // 0 = welcome, 1-7 = steps, 8 = complete
+const chatEl = document.getElementById('chat-messages');
+
+const stepMeta = [
+  null,
+  { label:'Verify Business', pct:14, remaining:'~12 min remaining' },
+  { label:'Locations & Regions', pct:28, remaining:'~10 min remaining' },
+  { label:'Calendar & Comp', pct:43, remaining:'~8 min remaining' },
+  { label:'People & Decisions', pct:57, remaining:'~6 min remaining' },
+  { label:'Cost Structure', pct:71, remaining:'~4 min remaining' },
+  { label:'Brand Identity', pct:86, remaining:'~2 min remaining' },
+  { label:'Integrations', pct:95, remaining:'~1 min remaining' },
+  { label:'Complete', pct:100, remaining:'Done!' }
+];
+
+// ===== SIDEBAR UPDATE =====
+function updateSidebar(step) {
+  const steps = document.querySelectorAll('.sb-step');
+  steps.forEach((el, i) => {
+    el.classList.remove('active', 'done');
+    if (i + 1 < step) el.classList.add('done');
+    else if (i + 1 === step) el.classList.add('active');
+    if (step === 8) el.classList.add('done');
+  });
+  const meta = stepMeta[step] || stepMeta[1];
+  document.getElementById('sp-step-label').textContent = step <= 7 ? `Step ${step} of 7` : 'Complete';
+  document.getElementById('sp-pct').textContent = meta.pct + '%';
+  document.getElementById('sp-fill').style.width = meta.pct + '%';
+  document.getElementById('sp-time').innerHTML = step <= 7
+    ? '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>' + meta.remaining
+    : 'All done!';
+}
+
+// ===== MESSAGE HELPERS =====
+function addAgentText(text, delay) {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      const group = document.createElement('div');
+      group.className = 'msg-group agent';
+      group.innerHTML = `<div class="msg agent">${text}</div>`;
+      chatEl.appendChild(group);
+      scrollChat();
+      resolve();
+    }, delay || 0);
+  });
+}
+
+function addAgentCard(html, delay) {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      const group = document.createElement('div');
+      group.className = 'msg-group agent';
+      group.innerHTML = `<div class="msg-card">${html}</div>`;
+      chatEl.appendChild(group);
+      scrollChat();
+      resolve();
+    }, delay || 0);
+  });
+}
+
+function addQuickReplies(buttons, delay) {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      const wrap = document.createElement('div');
+      wrap.className = 'quick-replies';
+      wrap.id = 'current-qr';
+      buttons.forEach(b => {
+        const btn = document.createElement('button');
+        btn.className = 'qr-btn' + (b.primary ? ' primary' : '');
+        btn.textContent = b.label;
+        btn.onclick = () => {
+          removeQuickReplies();
+          addUserMsg(b.label);
+          if (b.action) b.action();
+        };
+        wrap.appendChild(btn);
+      });
+      chatEl.appendChild(wrap);
+      scrollChat();
+      resolve();
+    }, delay || 0);
+  });
+}
+
+function removeQuickReplies() {
+  const qr = document.getElementById('current-qr');
+  if (qr) qr.remove();
+}
+
+function addUserMsg(text) {
+  const group = document.createElement('div');
+  group.className = 'msg-group user';
+  group.innerHTML = `<div class="msg user">${text}</div>`;
+  chatEl.appendChild(group);
+  scrollChat();
+}
+
+function showTyping() {
+  const el = document.createElement('div');
+  el.className = 'msg-group agent';
+  el.id = 'typing';
+  el.innerHTML = '<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+  chatEl.appendChild(el);
+  scrollChat();
+}
+
+function hideTyping() {
+  const t = document.getElementById('typing');
+  if (t) t.remove();
+}
+
+function scrollChat() {
+  chatEl.scrollTop = chatEl.scrollHeight;
+}
+
+// ===== STEP FLOWS =====
+
+async function startWelcome() {
+  await addAgentText("Hi! I'm your <strong>Loop Setup Agent</strong>. I'll walk you through configuring your business profile so every Loop module - TruROI, Balance, Protect, Ops - has what it needs from day one.", 400);
+  await addAgentText("This takes about <strong>12 minutes</strong>. Everything auto-saves, so you can pause and come back anytime. Ready?", 800);
+  await addQuickReplies([
+    { label: "Let's go!", primary: true, action: () => startStep1() },
+    { label: "What will you ask me?", action: () => showOverview() }
+  ], 400);
+}
+
+async function showOverview() {
+  showTyping();
+  await delay(600);
+  hideTyping();
+  await addAgentText("Here's what we'll cover:", 0);
+  await addAgentCard(`
+    <div class="mc-body" style="padding:14px 16px;">
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;">
+        <div><strong>1. Verify Business</strong> - Confirm brands & ownership <span style="color:var(--text-light)">~1 min</span></div>
+        <div><strong>2. Locations & Regions</strong> - Review auto-detected stores <span style="color:var(--text-light)">~3 min</span></div>
+        <div><strong>3. Calendar & Comp</strong> - Fiscal year, comp rules <span style="color:var(--text-light)">~1 min</span></div>
+        <div><strong>4. People & Decisions</strong> - Key contacts & roles <span style="color:var(--text-light)">~2 min</span></div>
+        <div><strong>5. Cost Structure</strong> - Unit economics by brand <span style="color:var(--text-light)">~2 min</span></div>
+        <div><strong>6. Brand Identity</strong> - Logo, colors, persona <span style="color:var(--text-light)">~1 min</span></div>
+        <div><strong>7. Integrations</strong> - Slack, POS, Accounting <span style="color:var(--text-light)">~2 min</span></div>
+      </div>
+    </div>
+  `, 300);
+  await addAgentText("Most of this is already pre-filled from your sales conversations. You'll mostly be confirming and tweaking.", 400);
+  await addQuickReplies([
+    { label: "Let's start!", primary: true, action: () => startStep1() }
+  ], 300);
+}
+
+// ===== STEP 1: VERIFY BUSINESS =====
+async function startStep1() {
+  currentStep = 1;
+  updateSidebar(1);
+  showTyping();
+  await delay(700);
+  hideTyping();
+
+  await addAgentText("Let's start with <strong>Step 1: Verify Your Business</strong> <span style='font-size:11px;color:var(--text-light);background:var(--bg);padding:2px 8px;border-radius:12px;margin-left:4px;'>~1 min</span>", 0);
+  await addAgentText("Your AE already captured your brand details. Take a look and correct anything that's off.", 400);
+  await addAgentCard(`
+    <div class="mc-header">
+      <h4>Your Brands</h4>
+      <span class="mc-tag prefill">Pre-filled from AE</span>
+    </div>
+    <div class="mc-body" style="padding:0;overflow-x:auto;">
+      <table class="mc-table" style="padding:0 16px;">
+        <thead><tr><th style="padding-left:16px;">Brand</th><th>Type</th><th>Ownership</th><th>Corporate Entity</th><th>Stores</th></tr></thead>
+        <tbody>
+          <tr>
+            <td style="padding-left:16px;"><strong>Dave's Hot Chicken</strong></td>
+            <td><span class="tag">Real</span></td>
+            <td><select class="fi prefilled" style="width:115px;padding:5px 8px;font-size:12px;"><option selected>Franchisee</option><option>Franchisor</option><option>Fully Owned</option><option>CPA</option></select></td>
+            <td><input class="fi prefilled" style="width:140px;padding:5px 8px;font-size:12px;" value="Dave's Hot Chicken Inc."></td>
+            <td>12</td>
+          </tr>
+          <tr>
+            <td style="padding-left:16px;"><strong>Slim Chickens</strong></td>
+            <td><span class="tag">Real</span></td>
+            <td><select class="fi prefilled" style="width:115px;padding:5px 8px;font-size:12px;"><option selected>Franchisee</option><option>Franchisor</option><option>Fully Owned</option><option>CPA</option></select></td>
+            <td><input class="fi prefilled" style="width:140px;padding:5px 8px;font-size:12px;" value="Slim Chickens LLC"></td>
+            <td>8</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="mc-footer">
+      <button class="btn btn-sm btn-ghost" onclick="addBrandInChat()">+ Add another brand</button>
+    </div>
+  `, 500);
+
+  await addAgentCard(`
+    <div class="mc-header"><h4>Corporate Involvement</h4></div>
+    <div class="mc-body">
+      <div class="mc-form-grid">
+        <div class="mc-fg">
+          <div class="mc-fl">Dave's Hot Chicken</div>
+          <select class="fi prefilled"><option>None</option><option selected>Aware of deployment</option><option>Active participant</option></select>
+        </div>
+        <div class="mc-fg">
+          <div class="mc-fl">Slim Chickens</div>
+          <select class="fi prefilled"><option selected>None</option><option>Aware of deployment</option><option>Active participant</option></select>
+        </div>
+      </div>
+    </div>
+  `, 300);
+
+  await addAgentText("Does this look right? Feel free to edit anything directly in the cards above, or tell me what to change.", 400);
+  await addQuickReplies([
+    { label: "Looks good, continue", primary: true, action: () => startStep2() },
+    { label: "I need to add a brand", action: () => { addBrandInChat(); } },
+    { label: "Change ownership type", action: () => handleOwnershipChange() }
+  ], 300);
+}
+
+function addBrandInChat() {
+  removeQuickReplies();
+  addUserMsg("I want to add another brand");
+  showTyping();
+  setTimeout(async () => {
+    hideTyping();
+    await addAgentText("No problem! Fill in the details below.", 0);
+    await addAgentCard(`
+      <div class="mc-header"><h4>Add New Brand</h4></div>
+      <div class="mc-body">
+        <div class="mc-form-grid">
+          <div class="mc-fg">
+            <div class="mc-fl">Brand Name</div>
+            <input class="fi" placeholder="e.g. Wingstop">
+          </div>
+          <div class="mc-fg">
+            <div class="mc-fl">Type</div>
+            <select class="fi"><option selected>Real</option><option>Virtual</option></select>
+          </div>
+          <div class="mc-fg">
+            <div class="mc-fl">Ownership</div>
+            <select class="fi"><option>Franchisee</option><option>Franchisor</option><option>Fully Owned</option><option>CPA</option></select>
+          </div>
+          <div class="mc-fg">
+            <div class="mc-fl">Corporate Entity</div>
+            <input class="fi" placeholder="Legal entity name">
+          </div>
+        </div>
+      </div>
+      <div class="mc-footer">
+        <button class="btn btn-sm btn-primary" onclick="brandAdded()">Add Brand</button>
+      </div>
+    `, 300);
+  }, 600);
+}
+
+function brandAdded() {
+  addAgentText("Brand added! I'll include it in all the upcoming steps. Anything else, or shall we move on?", 0);
+  addQuickReplies([
+    { label: "Continue to Locations", primary: true, action: () => startStep2() },
+    { label: "Add another brand", action: () => addBrandInChat() }
+  ], 300);
+}
+
+function handleOwnershipChange() {
+  addAgentText("No problem - just select the correct ownership type in the dropdown next to each brand above. Options are Franchisee, Franchisor, Fully Owned, or CPA.", 0);
+  addQuickReplies([
+    { label: "Done, continue", primary: true, action: () => startStep2() }
+  ], 300);
+}
+
+// ===== STEP 2: LOCATIONS =====
+async function startStep2() {
+  currentStep = 2;
+  updateSidebar(2);
+  showTyping();
+  await delay(700);
+  hideTyping();
+
+  await addAgentText("<strong>Step 2: Locations & Regions</strong> <span style='font-size:11px;color:var(--text-light);background:var(--bg);padding:2px 8px;border-radius:12px;margin-left:4px;'>~3 min</span>", 0);
+  await addAgentText("I found <strong>20 locations</strong> from your DoorDash and UberEats accounts - 12 for Dave's and 8 for Slim Chickens. I need you to add region groupings and open dates so we can track vintage and same-store performance.", 500);
+
+  await addAgentCard(`
+    <div class="mc-header">
+      <h4>Auto-Detected Locations</h4>
+      <span class="mc-tag prefill">20 found</span>
+    </div>
+    <div class="mc-body" style="padding:0;overflow-x:auto;">
+      <table class="mc-table" style="min-width:650px;">
+        <thead><tr><th style="padding-left:16px;">Location</th><th>Brand</th><th>Ownership</th><th>Region</th><th>Open Date</th></tr></thead>
+        <tbody>
+          <tr>
+            <td style="padding-left:16px;">
+              <strong>#101 Downtown Tampa</strong>
+              <div style="font-size:10px;color:var(--text-light);">412 W Kennedy Blvd, Tampa FL</div>
+            </td>
+            <td><span class="tag">Dave's</span></td>
+            <td><select class="fi" style="width:100px;padding:4px 6px;font-size:11px;"><option>Corporate</option><option selected>Franchisee</option><option>Franchisor</option><option>Fully Owned</option><option>CPA</option></select></td>
+            <td><input class="fi" style="width:80px;padding:4px 6px;font-size:11px;" value="Florida"></td>
+            <td><input type="date" class="fi" style="width:115px;padding:4px 6px;font-size:11px;" value="2024-03-15"></td>
+          </tr>
+          <tr>
+            <td style="padding-left:16px;">
+              <strong>#102 Westchase</strong>
+              <div style="font-size:10px;color:var(--text-light);">9608 W Linebaugh Ave, Tampa FL</div>
+            </td>
+            <td><span class="tag">Dave's</span></td>
+            <td><select class="fi" style="width:100px;padding:4px 6px;font-size:11px;"><option>Corporate</option><option selected>Franchisee</option><option>Franchisor</option><option>Fully Owned</option><option>CPA</option></select></td>
+            <td><input class="fi" style="width:80px;padding:4px 6px;font-size:11px;" value="Florida"></td>
+            <td><input type="date" class="fi" style="width:115px;padding:4px 6px;font-size:11px;" value="2024-06-01"></td>
+          </tr>
+          <tr>
+            <td style="padding-left:16px;">
+              <strong>#201 Midtown Atlanta</strong>
+              <div style="font-size:10px;color:var(--text-light);">725 Ponce De Leon Ave, Atlanta GA</div>
+            </td>
+            <td><span class="tag">Slim</span></td>
+            <td><select class="fi" style="width:100px;padding:4px 6px;font-size:11px;"><option>Corporate</option><option selected>Franchisee</option><option>Franchisor</option><option>Fully Owned</option><option>CPA</option></select></td>
+            <td><input class="fi" style="width:80px;padding:4px 6px;font-size:11px;" value="Georgia"></td>
+            <td><input type="date" class="fi" style="width:115px;padding:4px 6px;font-size:11px;" value="2023-09-20"></td>
+          </tr>
+          <tr><td colspan="5" style="text-align:center;color:var(--text-light);font-size:11px;padding:10px 16px;">+ 17 more locations</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="mc-footer">
+      <button class="btn btn-sm btn-ghost" onclick="applyAllFranchisee()">Apply "Franchisee" to all</button>
+      <button class="btn btn-sm btn-ghost" onclick="fillRegions()">Copy Region from row 1</button>
+    </div>
+  `, 500);
+
+  await addAgentCard(`
+    <div class="mc-body" style="padding:14px 16px;">
+      <div class="mc-banner info">
+        <span class="b-icon">i</span>
+        <div><strong>Why regions & open dates?</strong> Regions let you filter performance by market. Open dates determine which stores qualify for same-store-sales comparisons. Both are used across every Loop module.</div>
+      </div>
+    </div>
+  `, 200);
+
+  await addAgentText("You can edit inline above, or if you have a spreadsheet with all your locations, upload it below.", 400);
+  await addQuickReplies([
+    { label: "Looks good, continue", primary: true, action: () => startStep3() },
+    { label: "Upload a CSV instead", action: () => showCSVUpload() },
+    { label: "All stores are Franchisee", action: () => { applyAllFranchisee(); } }
+  ], 300);
+}
+
+function applyAllFranchisee() {
+  removeQuickReplies();
+  addUserMsg("All stores are Franchisee");
+  setTimeout(async () => {
+    await addAgentText("Done - I've applied <strong>Franchisee</strong> to all 20 locations. Ready to move on?", 300);
+    await addQuickReplies([
+      { label: "Continue to Calendar", primary: true, action: () => startStep3() },
+      { label: "Upload CSV for regions/dates", action: () => showCSVUpload() }
+    ], 200);
+  }, 400);
+}
+
+function fillRegions() {
+  // visual feedback
+}
+
+function showCSVUpload() {
+  removeQuickReplies();
+  addUserMsg("I'll upload a CSV");
+  showTyping();
+  setTimeout(async () => {
+    hideTyping();
+    await addAgentCard(`
+      <div class="mc-header"><h4>Bulk Upload Locations</h4></div>
+      <div class="mc-body">
+        <div class="mc-upload" onclick="document.getElementById('loc-csv-input').click()">
+          <input type="file" id="loc-csv-input" accept=".csv,.xlsx" style="display:none;" onchange="handleLocCSV(this)">
+          <div style="font-size:22px;opacity:0.3;margin-bottom:6px;">&#8682;</div>
+          <div class="mc-upload-text">Drop a CSV here or <strong>click to browse</strong></div>
+          <div style="font-size:10px;color:var(--text-light);margin-top:4px;">Columns: Store#, Brand, Ownership, Region, FranchiseeGroup, OpenDate</div>
+        </div>
+        <div id="loc-csv-status" style="display:none;margin-top:8px;padding:8px 12px;background:var(--green-soft);border-radius:6px;font-size:12px;color:var(--green-text);text-align:center;"></div>
+      </div>
+      <div class="mc-footer">
+        <button class="btn-link" onclick="downloadLocTemplate()">Download CSV template</button>
+      </div>
+    `, 300);
+    await addAgentText("Upload your file and I'll merge it with the locations I've already found.", 300);
+  }, 500);
+}
+
+function handleLocCSV(input) {
+  if (input.files && input.files[0]) {
+    const name = input.files[0].name;
+    document.getElementById('loc-csv-status').style.display = 'block';
+    document.getElementById('loc-csv-status').innerHTML = '<strong>' + name + '</strong> uploaded. 20 locations matched and updated.';
+    setTimeout(async () => {
+      await addAgentText("Got it! I merged <strong>" + name + "</strong> with the detected locations. All 20 stores are now updated.", 0);
+      await addQuickReplies([
+        { label: "Continue to Calendar", primary: true, action: () => startStep3() }
+      ], 200);
+    }, 500);
+  }
+}
+
+function downloadLocTemplate() {
+  const csv = 'Store#,Brand,Ownership,Region,FranchiseeGroup,OpenDate\n101,Dave\'s Hot Chicken,Franchisee,Florida,Tampa Bay,2024-03-15\n201,Slim Chickens,Franchisee,Georgia,Metro Atlanta,2023-09-20';
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'loop-locations-template.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ===== STEP 3: CALENDAR & COMP =====
+async function startStep3() {
+  currentStep = 3;
+  updateSidebar(3);
+  showTyping();
+  await delay(700);
+  hideTyping();
+
+  await addAgentText("<strong>Step 3: Calendar & Comp Rules</strong> <span style='font-size:11px;color:var(--text-light);background:var(--bg);padding:2px 8px;border-radius:12px;margin-left:4px;'>~1 min</span>", 0);
+  await addAgentText("Your fiscal calendar powers period reporting in Balance, campaign cycles in TruROI, and operational cadences in Ops. Let's nail this down.", 400);
+
+  await addAgentCard(`
+    <div class="mc-header"><h4>Fiscal Calendar</h4></div>
+    <div class="mc-body">
+      <div class="mc-form-grid">
+        <div class="mc-fg">
+          <div class="mc-fl">Fiscal year starts in</div>
+          <select class="fi"><option selected>January</option><option>February</option><option>April</option><option>July</option><option>October</option></select>
+        </div>
+        <div class="mc-fg">
+          <div class="mc-fl">Period type</div>
+          <select class="fi"><option selected>Calendar Month</option><option>4-4-5</option><option>4-5-4</option><option>5-4-4</option><option>Custom</option></select>
+        </div>
+      </div>
+      <div class="toggle-row" style="margin-top:10px;">
+        <span class="toggle-label">Same calendar for all brands?</span>
+        <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+      </div>
+    </div>
+  `, 500);
+
+  await addAgentCard(`
+    <div class="mc-header"><h4>Comp Definition</h4></div>
+    <div class="mc-body">
+      <div class="mc-form-grid">
+        <div class="mc-fg">
+          <div class="mc-fl">A store is "comped" after</div>
+          <select class="fi"><option selected>12 months from open date</option><option>18 months</option><option>Custom</option></select>
+          <div style="font-size:10px;color:var(--text-light);margin-top:3px;">Newer stores excluded from same-store-sales</div>
+        </div>
+        <div class="mc-fg">
+          <div class="mc-fl">SSS eligibility</div>
+          <select class="fi"><option selected>Same as comp definition</option><option>Custom SSS rules</option></select>
+        </div>
+      </div>
+    </div>
+  `, 300);
+
+  await addAgentText("Most QSR franchisees use calendar month and 12-month comp. Does this match you?", 400);
+  await addQuickReplies([
+    { label: "Yes, continue", primary: true, action: () => startStep4() },
+    { label: "We use 4-4-5", action: () => {
+      addUserMsg("We use 4-4-5");
+      setTimeout(async () => {
+        await addAgentText("Got it - switched to <strong>4-4-5</strong> period calendar. Moving on!", 300);
+        startStep4();
+      }, 400);
+    }},
+    { label: "Our comp is 18 months", action: () => {
+      addUserMsg("Our comp window is 18 months");
+      setTimeout(async () => {
+        await addAgentText("Updated comp definition to <strong>18 months</strong>. Let's continue.", 300);
+        startStep4();
+      }, 400);
+    }}
+  ], 300);
+}
+
+// ===== STEP 4: PEOPLE =====
+async function startStep4() {
+  currentStep = 4;
+  updateSidebar(4);
+  showTyping();
+  await delay(700);
+  hideTyping();
+
+  await addAgentText("<strong>Step 4: People & Decisions</strong> <span style='font-size:11px;color:var(--text-light);background:var(--bg);padding:2px 8px;border-radius:12px;margin-left:4px;'>~2 min</span>", 0);
+  await addAgentText("Who runs marketing, who sees reports, and how do campaign decisions get made? This routes the right people to the right modules.", 400);
+
+  await addAgentCard(`
+    <div class="mc-header"><h4>Marketing Structure</h4><span class="mc-tag prefill">Pre-filled from AE</span></div>
+    <div class="mc-body">
+      <div class="mc-fg" style="margin-bottom:12px;">
+        <div class="mc-fl">How is marketing managed today?</div>
+        <select class="fi prefilled" style="max-width:320px;">
+          <option>We manage it ourselves</option>
+          <option selected>We work with marketplace reps</option>
+          <option>Agency handles it</option>
+          <option>Corporate runs national campaigns</option>
+          <option>Co-op (corporate + local)</option>
+        </select>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-label">Corporate runs national campaigns affecting your stores?</span>
+        <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-label">Can you opt out of national campaigns?</span>
+        <div class="toggle" onclick="this.classList.toggle('on')"></div>
+      </div>
+    </div>
+  `, 500);
+
+  await addAgentCard(`
+    <div class="mc-header">
+      <h4>Key People</h4>
+      <button class="btn btn-sm btn-ghost" onclick="addPersonInChat()">+ Add person</button>
+    </div>
+    <div class="mc-body" style="padding:0;overflow-x:auto;">
+      <table class="mc-table">
+        <thead><tr><th style="padding-left:16px;">Name</th><th>Email</th><th>Role</th><th>Reports</th><th>Decisions</th></tr></thead>
+        <tbody id="people-tbody">
+          <tr>
+            <td style="padding-left:16px;"><input class="fi prefilled" style="width:120px;" value="Marcus Johnson"></td>
+            <td><input class="fi prefilled" style="width:150px;" value="marcus@example.com"></td>
+            <td><select class="fi" style="width:100px;"><option>Owner</option><option selected>Marketing</option><option>Operations</option><option>Finance</option></select></td>
+            <td style="text-align:center;"><input type="checkbox" checked></td>
+            <td style="text-align:center;"><input type="checkbox" checked></td>
+          </tr>
+          <tr>
+            <td style="padding-left:16px;"><input class="fi" style="width:120px;" value="Sarah Chen"></td>
+            <td><input class="fi" style="width:150px;" value="sarah@example.com"></td>
+            <td><select class="fi" style="width:100px;"><option selected>Owner</option><option>Marketing</option><option>Operations</option><option>Finance</option></select></td>
+            <td style="text-align:center;"><input type="checkbox" checked></td>
+            <td style="text-align:center;"><input type="checkbox"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="mc-footer">
+      <button class="btn-link" onclick="uploadPeopleCSV()">Upload a list (CSV)</button>
+    </div>
+  `, 400);
+
+  await addAgentText("Marcus is flagged as your marketing lead with decision authority. Sarah is the owner with report access. Want to add anyone else?", 400);
+  await addQuickReplies([
+    { label: "Looks good, continue", primary: true, action: () => startStep5() },
+    { label: "Add another person", action: () => addPersonInChat() },
+    { label: "Upload CSV of people", action: () => uploadPeopleCSV() }
+  ], 300);
+}
+
+function addPersonInChat() {
+  removeQuickReplies();
+  addUserMsg("Add another person");
+  showTyping();
+  setTimeout(async () => {
+    hideTyping();
+    const tbody = document.getElementById('people-tbody');
+    if (tbody) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<td style="padding-left:16px;"><input class="fi" style="width:120px;" placeholder="Full name"></td><td><input class="fi" style="width:150px;" placeholder="email@co.com"></td><td><select class="fi" style="width:100px;"><option>Owner</option><option>Marketing</option><option selected>Operations</option><option>Finance</option><option>Store Manager</option></select></td><td style="text-align:center;"><input type="checkbox"></td><td style="text-align:center;"><input type="checkbox"></td>';
+      tr.style.animation = 'msgIn 0.3s ease';
+      tbody.appendChild(tr);
+    }
+    await addAgentText("I've added a new row. Fill in their details and let me know when you're ready to continue.", 0);
+    await addQuickReplies([
+      { label: "Continue to Costs", primary: true, action: () => startStep5() },
+      { label: "Add another", action: () => addPersonInChat() }
+    ], 200);
+  }, 500);
+}
+
+function uploadPeopleCSV() {
+  removeQuickReplies();
+  addUserMsg("I'll upload a CSV");
+  showTyping();
+  setTimeout(async () => {
+    hideTyping();
+    await addAgentCard(`
+      <div class="mc-header"><h4>Upload People List</h4></div>
+      <div class="mc-body">
+        <div class="mc-upload" onclick="document.getElementById('people-csv-file').click()">
+          <input type="file" id="people-csv-file" accept=".csv,.xlsx" style="display:none;" onchange="handlePeopleCSVUpload(this)">
+          <div style="font-size:22px;opacity:0.3;margin-bottom:6px;">&#8682;</div>
+          <div class="mc-upload-text">Drop a CSV here or <strong>click to browse</strong></div>
+          <div style="font-size:10px;color:var(--text-light);margin-top:4px;">Columns: Name, Email, Role, Brands, Reports (Y/N), Decisions (Y/N)</div>
+        </div>
+      </div>
+    `, 300);
+  }, 500);
+}
+
+function handlePeopleCSVUpload(input) {
+  if (input.files && input.files[0]) {
+    const name = input.files[0].name;
+    addAgentText("Imported people from <strong>" + name + "</strong>. I've added them to the table above.", 0);
+    addQuickReplies([
+      { label: "Continue to Costs", primary: true, action: () => startStep5() }
+    ], 200);
+  }
+}
+
+// ===== STEP 5: COSTS =====
+async function startStep5() {
+  currentStep = 5;
+  updateSidebar(5);
+  showTyping();
+  await delay(700);
+  hideTyping();
+
+  await addAgentText("<strong>Step 5: Cost Structure</strong> <span style='font-size:11px;color:var(--text-light);background:var(--bg);padding:2px 8px;border-radius:12px;margin-left:4px;'>~2 min</span>", 0);
+  await addAgentText("I need a rough breakdown of your costs per brand. This powers ROI calculations and flow-through analysis. <strong>Rough estimates are totally fine</strong> - you can always refine later.", 500);
+
+  await addAgentCard(`
+    <div class="mc-header"><h4>Unit Economics - Dave's Hot Chicken</h4><span class="mc-tag info">Editable</span></div>
+    <div class="mc-body">
+      <div class="mc-form-grid">
+        <div class="mc-fg">
+          <div class="mc-fl">Food Costs</div>
+          <div style="position:relative;"><input class="fi" style="width:100%;padding-right:28px;" value="32"><span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--text-light);font-size:12px;">%</span></div>
+        </div>
+        <div class="mc-fg">
+          <div class="mc-fl">Packaging</div>
+          <div style="position:relative;"><input class="fi" style="width:100%;padding-right:28px;" value="6"><span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--text-light);font-size:12px;">%</span></div>
+        </div>
+        <div class="mc-fg">
+          <div class="mc-fl">Royalty (franchisee)</div>
+          <div style="position:relative;"><input class="fi" style="width:100%;padding-right:28px;" value="5"><span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--text-light);font-size:12px;">%</span></div>
+        </div>
+        <div class="mc-fg">
+          <div class="mc-fl">Ad Fund (franchisee)</div>
+          <div style="position:relative;"><input class="fi" style="width:100%;padding-right:28px;" value="3"><span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--text-light);font-size:12px;">%</span></div>
+        </div>
+        <div class="mc-fg">
+          <div class="mc-fl">Labour</div>
+          <div style="position:relative;"><input class="fi" style="width:100%;padding-right:28px;" value="27"><span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--text-light);font-size:12px;">%</span></div>
+        </div>
+        <div class="mc-fg">
+          <div class="mc-fl">Rent / Occupancy</div>
+          <div style="position:relative;"><input class="fi" style="width:100%;padding-right:28px;" value="9"><span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--text-light);font-size:12px;">%</span></div>
+        </div>
+      </div>
+      <div class="mc-summary">
+        <span class="label">Total Costs / Implied Margin</span>
+        <span class="value">82% costs / 18% margin</span>
+      </div>
+      <div class="toggle-row" style="margin-top:8px;">
+        <span class="toggle-label">Same costs for all brands?</span>
+        <div class="toggle" onclick="this.classList.toggle('on')"></div>
+      </div>
+    </div>
+  `, 500);
+
+  await addAgentCard(`
+    <div class="mc-header"><h4>Marketing Budget</h4><span style="font-size:10px;color:var(--text-light);">optional</span></div>
+    <div class="mc-body">
+      <div class="mc-form-grid">
+        <div class="mc-fg">
+          <div class="mc-fl">Annual budget</div>
+          <div style="position:relative;"><input class="fi" style="width:100%;padding-right:28px;" value="150000"><span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--text-light);font-size:12px;">$</span></div>
+        </div>
+        <div class="mc-fg">
+          <div class="mc-fl">Budget scope</div>
+          <select class="fi"><option selected>All platforms combined</option><option>By platform</option><option>By location</option></select>
+        </div>
+      </div>
+    </div>
+  `, 300);
+
+  await addAgentText("An 18% implied margin is typical for QSR franchisees. Does this look right for Dave's?", 400);
+  await addQuickReplies([
+    { label: "Looks right, continue", primary: true, action: () => startStep6() },
+    { label: "Skip costs for now", action: () => {
+      addUserMsg("I'll fill this in later");
+      setTimeout(async () => {
+        await addAgentText("No problem - you can always update costs under Settings. Let's move on.", 300);
+        startStep6();
+      }, 400);
+    }},
+    { label: "Costs are different per brand", action: () => {
+      addUserMsg("Costs are different for Slim Chickens");
+      setTimeout(async () => {
+        await addAgentText("Got it. Turn off the 'Same costs for all brands' toggle above and I'll show you the Slim Chickens cost card next. For now, let's continue.", 300);
+        await addQuickReplies([
+          { label: "Continue", primary: true, action: () => startStep6() }
+        ], 200);
+      }, 400);
+    }}
+  ], 300);
+}
+
+// ===== STEP 6: BRAND IDENTITY =====
+async function startStep6() {
+  currentStep = 6;
+  updateSidebar(6);
+  showTyping();
+  await delay(700);
+  hideTyping();
+
+  await addAgentText("<strong>Step 6: Brand Identity</strong> <span style='font-size:11px;color:var(--text-light);background:var(--bg);padding:2px 8px;border-radius:12px;margin-left:4px;'>~1 min</span>", 0);
+  await addAgentText("Your logo, colors, and report style. I've auto-detected some of this from your website.", 400);
+
+  await addAgentCard(`
+    <div class="mc-header"><h4>Dave's Hot Chicken</h4><span class="mc-tag prefill">Auto-detected</span></div>
+    <div class="mc-body">
+      <div class="mc-form-grid">
+        <div class="mc-fg">
+          <div class="mc-fl">Brand Logo</div>
+          <div class="mc-upload" style="padding:12px;" onclick="document.getElementById('logo-input').click()">
+            <input type="file" id="logo-input" accept="image/*" style="display:none;" onchange="handleLogoUploadChat(this)">
+            <div id="logo-preview-chat">
+              <svg width="60" height="60" viewBox="0 0 80 80" fill="none" style="border-radius:10px;border:2px solid var(--border);background:white;">
+                <rect width="80" height="80" rx="12" fill="#FFF5F5"/>
+                <text x="40" y="32" text-anchor="middle" font-size="24" font-weight="800" fill="#e63946">D</text>
+                <text x="40" y="50" text-anchor="middle" font-size="8" font-weight="700" fill="#e63946" letter-spacing="1">DAVE'S HOT</text>
+                <text x="40" y="60" text-anchor="middle" font-size="8" font-weight="700" fill="#e63946" letter-spacing="1">CHICKEN</text>
+              </svg>
+            </div>
+            <div style="font-size:10px;color:var(--green-text);font-weight:600;margin-top:4px;">Auto-detected from website</div>
+            <div class="mc-upload-text" style="font-size:11px;margin-top:2px;">Click to upload higher-res</div>
+          </div>
+        </div>
+        <div class="mc-fg">
+          <div class="mc-fl">Brand Colors</div>
+          <div class="swatch-row" style="margin-top:4px;">
+            <div class="swatch"><div class="swatch-circle" style="background:#e63946;"></div><span>Primary</span></div>
+            <div class="swatch"><div class="swatch-circle" style="background:#1d3557;"></div><span>Secondary</span></div>
+            <div class="swatch"><div class="swatch-circle" style="background:#f1faee;"></div><span>Accent</span></div>
+          </div>
+          <div style="font-size:10px;color:var(--text-light);margin-top:6px;">Auto-extracted. Click any swatch to change.</div>
+        </div>
+        <div class="mc-fg">
+          <div class="mc-fl">AI Persona Name <span style="font-weight:400;color:var(--text-light);">optional</span></div>
+          <input class="fi" placeholder="e.g. Dave Z, ChickenBot">
+          <div style="font-size:10px;color:var(--text-light);">Name your Loop AI. We'll suggest one if blank.</div>
+        </div>
+        <div class="mc-fg">
+          <div class="mc-fl">Report Template <span style="font-weight:400;color:var(--text-light);">optional</span></div>
+          <div class="mc-upload" style="padding:10px;" onclick="document.getElementById('tpl-input').click()">
+            <input type="file" id="tpl-input" accept=".pptx,.pdf" style="display:none;" onchange="handleTplUpload(this)">
+            <div id="tpl-status" class="mc-upload-text" style="font-size:11px;">Upload PPTX/PDF for branded decks</div>
+          </div>
+        </div>
+        <div class="mc-fg">
+          <div class="mc-fl">Website</div>
+          <input class="fi prefilled" value="https://daveshotchicken.com">
+        </div>
+        <div class="mc-fg">
+          <div class="mc-fl">LinkedIn</div>
+          <input class="fi prefilled" value="https://linkedin.com/company/daves-hot-chicken">
+        </div>
+      </div>
+    </div>
+  `, 500);
+
+  await addAgentText("I pulled the logo and colors from daveshotchicken.com. Want to give your Loop AI a persona name? If not, we'll auto-generate one.", 400);
+  await addQuickReplies([
+    { label: "Looks great, continue", primary: true, action: () => startStep7() },
+    { label: "Call it Dave Z", action: () => {
+      addUserMsg("Call the AI persona Dave Z");
+      setTimeout(async () => {
+        await addAgentText("Love it. <strong>Dave Z</strong> is your AI persona. Last step!", 300);
+        startStep7();
+      }, 400);
+    }},
+    { label: "Skip persona for now", action: () => startStep7() }
+  ], 300);
+}
+
+function handleLogoUploadChat(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      document.getElementById('logo-preview-chat').innerHTML =
+        '<img src="' + e.target.result + '" style="max-width:60px;max-height:60px;border-radius:10px;border:2px solid var(--border);">';
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+function handleTplUpload(input) {
+  if (input.files && input.files[0]) {
+    document.getElementById('tpl-status').innerHTML =
+      '<span style="color:var(--green-text);font-weight:600;">' + input.files[0].name + '</span> uploaded';
+  }
+}
+
+// ===== STEP 7: INTEGRATIONS =====
+async function startStep7() {
+  currentStep = 7;
+  updateSidebar(7);
+  showTyping();
+  await delay(700);
+  hideTyping();
+
+  await addAgentText("<strong>Step 7: Integrations</strong> <span style='font-size:11px;color:var(--text-light);background:var(--bg);padding:2px 8px;border-radius:12px;margin-left:4px;'>~2 min</span>", 0);
+  await addAgentText("Last step! Connect your communication and data tools. Alerts, approvals, and data feeds flow through these across all modules.", 400);
+
+  await addAgentCard(`
+    <div class="mc-header"><h4>Communication</h4></div>
+    <div class="mc-body">
+      <div class="mc-int-grid">
+        <div class="mc-int-card" onclick="connectSlack()">
+          <div><h5>Slack</h5><p>Alerts, reports, approvals</p></div>
+          <button class="btn btn-sm btn-primary">Connect</button>
+        </div>
+        <div class="mc-int-card">
+          <div><h5>Microsoft Teams</h5><p>Alerts, reports, approvals</p></div>
+          <button class="btn btn-sm btn-ghost">Connect</button>
+        </div>
+      </div>
+    </div>
+  `, 500);
+
+  await addAgentCard(`
+    <div class="mc-header"><h4>Data Connectors</h4></div>
+    <div class="mc-body">
+      <div class="mc-conn-grid">
+        <div class="mc-conn-card">
+          <div style="font-size:18px;opacity:0.4;">&#9634;</div>
+          <h5>POS</h5>
+          <p>Toast, Square, Aloha</p>
+        </div>
+        <div class="mc-conn-card">
+          <div style="font-size:18px;opacity:0.4;">&#9634;</div>
+          <h5>Accounting</h5>
+          <p>QuickBooks, Xero</p>
+        </div>
+        <div class="mc-conn-card">
+          <div style="font-size:18px;opacity:0.4;">&#9634;</div>
+          <h5>Other</h5>
+          <p>CRM, Loyalty, Inventory</p>
+        </div>
+      </div>
+    </div>
+  `, 300);
+
+  await addAgentText("Slack is the most popular choice. You can always connect more tools later from Settings.", 400);
+  await addQuickReplies([
+    { label: "Finish Setup", primary: true, action: () => finishSetup() },
+    { label: "Skip, I'll connect later", action: () => finishSetup() },
+    { label: "We use Slack", action: () => {
+      connectSlack();
+    }}
+  ], 300);
+}
+
+function connectSlack() {
+  removeQuickReplies();
+  addUserMsg("Connect Slack");
+  showTyping();
+  setTimeout(async () => {
+    hideTyping();
+    await addAgentText("Slack connected! I'll send alerts, weekly reports, and campaign approvals there. You can customize notification preferences later.", 0);
+    await addQuickReplies([
+      { label: "Finish Setup", primary: true, action: () => finishSetup() }
+    ], 200);
+  }, 600);
+}
+
+// ===== COMPLETE =====
+async function finishSetup() {
+  currentStep = 8;
+  updateSidebar(8);
+  showTyping();
+  await delay(800);
+  hideTyping();
+
+  await addAgentText("That's everything! Your business profile is fully configured. Every module now has what it needs to get you started.", 0);
+
+  await addAgentCard(`
+    <div class="mc-body" style="text-align:center;padding:24px 16px;">
+      <div style="width:52px;height:52px;border-radius:50%;background:var(--green-soft);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:24px;color:var(--green);">&#10003;</div>
+      <h4 style="font-size:18px;margin-bottom:6px;">Business Setup Complete</h4>
+      <p style="font-size:13px;color:var(--text-sec);max-width:380px;margin:0 auto 20px;">Your profile powers all Loop modules. Here's what's ready for you:</p>
+      <div class="mc-modules">
+        <div class="mc-mod ready">
+          <h5><span class="sd green"></span>TruROI+</h5>
+          <p>Ready. Setup link sent to marcus@example.com</p>
+        </div>
+        <div class="mc-mod ready">
+          <h5><span class="sd green"></span>Balance</h5>
+          <p>Ready. Calendar + costs configured.</p>
+        </div>
+        <div class="mc-mod">
+          <h5><span class="sd orange"></span>Protect</h5>
+          <p>Connect Slack to enable real-time alerts.</p>
+        </div>
+        <div class="mc-mod" style="opacity:0.45;">
+          <h5>Ops</h5>
+          <p>Not in your current plan.</p>
+        </div>
+      </div>
+    </div>
+  `, 500);
+
+  await addAgentText("You can revisit any of these settings from your dashboard. Is there anything else I can help with?", 400);
+  await addQuickReplies([
+    { label: "Go to Dashboard", primary: true, action: () => { addUserMsg("Take me to the dashboard"); addAgentText("Redirecting you to your Loop dashboard now...", 400); } },
+    { label: "Start TruROI+ Setup", action: () => { addUserMsg("Let's set up TruROI+"); addAgentText("Opening TruROI+ module setup. This will use all the business data we just configured!", 400); } },
+    { label: "Talk to support", action: () => { addUserMsg("I need to talk to someone"); addAgentText("Connecting you with your Customer Success Manager. They'll reach out within the hour.", 400); } }
+  ], 400);
+}
+
+// ===== USER FREE-TEXT INPUT =====
+function sendUserMessage() {
+  const input = document.getElementById('user-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  removeQuickReplies();
+  addUserMsg(text);
+
+  // Simple NLU-like routing
+  const lower = text.toLowerCase();
+  showTyping();
+  setTimeout(() => {
+    hideTyping();
+    if (lower.includes('skip') || lower.includes('later')) {
+      if (currentStep < 7) {
+        addAgentText("No problem - we can come back to this. Let's move on.", 0);
+        const nextFn = [null, startStep2, startStep3, startStep4, startStep5, startStep6, startStep7, finishSetup];
+        if (nextFn[currentStep]) nextFn[currentStep]();
+      } else {
+        finishSetup();
+      }
+    } else if (lower.includes('back') || lower.includes('previous')) {
+      if (currentStep > 1) {
+        addAgentText("Going back to the previous step.", 0);
+        const prevFn = [null, null, startStep1, startStep2, startStep3, startStep4, startStep5, startStep6];
+        if (prevFn[currentStep]) prevFn[currentStep]();
+      }
+    } else if (lower.includes('help') || lower.includes('question')) {
+      addAgentText("Of course! I'm here to help. What would you like to know? You can ask about any field, why we need certain information, or how to fill something in.", 0);
+    } else if (lower.includes('continu') || lower.includes('next') || lower.includes('move on') || lower.includes('looks good') || lower.includes('yes') || lower.includes('correct')) {
+      const nextFn = [startStep1, startStep2, startStep3, startStep4, startStep5, startStep6, startStep7, finishSetup, null];
+      if (nextFn[currentStep]) nextFn[currentStep]();
+      else addAgentText("You're all set! Head to your dashboard to explore your modules.", 0);
+    } else {
+      addAgentText("Got it, I've noted that. Let me know if you'd like to adjust anything in the cards above, or say <strong>\"continue\"</strong> to move forward.", 0);
+    }
+  }, 700);
+}
+
+// ===== JUMP TO STEP (sidebar click) =====
+function jumpToStep(step) {
+  removeQuickReplies();
+  const fns = [null, startStep1, startStep2, startStep3, startStep4, startStep5, startStep6, startStep7];
+  if (fns[step]) {
+    addAgentText("Jumping to <strong>" + stepMeta[step].label + "</strong>...", 0);
+    setTimeout(() => fns[step](), 400);
+  }
+}
+
+// ===== UTILITIES =====
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ===== INIT =====
+window.addEventListener('load', () => {
+  startWelcome();
+});
+</script>
+
+</body>
+</html>
