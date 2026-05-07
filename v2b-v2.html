@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loop — Onboarding Portal</title>
+<style>
+  :root {
+    --bg: #f7f8fa;
+    --white: #ffffff;
+    --text: #1a1a2e;
+    --text-sec: #5a5d7a;
+    --text-light: #9496ad;
+    --border: #e8eaef;
+    --border-focus: #7c6cf0;
+    --accent: #6c5ce7;
+    --accent-soft: #f0eeff;
+    --accent-text: #5b4cdb;
+    --green: #10b981;
+    --green-soft: #ecfdf5;
+    --green-text: #059669;
+    --orange: #f59e0b;
+    --orange-soft: #fffbeb;
+    --orange-text: #d97706;
+    --blue: #3b82f6;
+    --blue-soft: #eff6ff;
+    --teal: #00bfa6;
+    --teal-soft: #e6faf7;
+    --teal-text: #00917c;
+    --red: #ef4444;
+    --red-soft: #fef2f2;
+    --r: 16px;
+    --rs: 10px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.06);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:var(--bg); color:var(--text); line-height:1.6; -webkit-font-smoothing:antialiased; }
+
+  /* ===== TOP BAR ===== */
+  .topbar { background:var(--white); border-bottom:1px solid var(--border); padding:0 32px; height:56px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
+  .topbar-left { display:flex; align-items:center; gap:16px; }
+  .logo { font-size:17px; font-weight:800; color:var(--accent); letter-spacing:-0.5px; }
+  .topbar-divider { width:1px; height:20px; background:var(--border); }
+  .topbar-label { font-size:13px; color:var(--text-sec); }
+  .topbar-right { display:flex; align-items:center; gap:20px; }
+  .save-status { font-size:12px; color:var(--green-text); display:flex; align-items:center; gap:5px; }
+  .save-dot { width:6px; height:6px; border-radius:50%; background:var(--green); }
+  .help-link { font-size:13px; color:var(--text-sec); text-decoration:none; cursor:pointer; }
+  .help-link:hover { color:var(--accent); }
+
+  /* ===== MODULE TABS (top-level) ===== */
+  .module-tabs { background:var(--white); border-bottom:1px solid var(--border); padding:0 32px; display:flex; gap:0; position:sticky; top:56px; z-index:99; }
+  .mod-tab { padding:14px 24px; font-size:13px; font-weight:600; color:var(--text-light); cursor:pointer; border-bottom:2.5px solid transparent; transition:all 0.15s; display:flex; align-items:center; gap:8px; }
+  .mod-tab:hover { color:var(--text); }
+  .mod-tab.active { color:var(--accent-text); border-bottom-color:var(--accent); }
+  .mod-tab .mt-badge { font-size:10px; padding:2px 8px; border-radius:10px; font-weight:600; }
+  .mt-badge.done { background:var(--green-soft); color:var(--green-text); }
+  .mt-badge.active { background:var(--accent-soft); color:var(--accent-text); }
+  .mt-badge.pending { background:var(--orange-soft); color:var(--orange-text); }
+  .mt-badge.locked { background:var(--bg); color:var(--text-light); }
+
+  /* ===== OVERALL PROGRESS ===== */
+  .overall-progress { background:var(--white); border-bottom:1px solid var(--border); padding:16px 32px; }
+  .op-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .op-text { font-size:13px; color:var(--text-sec); }
+  .op-text strong { color:var(--text); }
+  .op-bar { height:6px; background:var(--border); border-radius:3px; overflow:hidden; }
+  .op-fill { height:100%; border-radius:3px; background:linear-gradient(90deg,var(--accent),#a78bfa); transition:width 0.6s ease; }
+  .op-modules { display:flex; gap:24px; margin-top:10px; }
+  .op-mod { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-light); }
+  .op-mod-dot { width:8px; height:8px; border-radius:50%; border:2px solid var(--border); }
+  .op-mod-dot.done { background:var(--green); border-color:var(--green); }
+  .op-mod-dot.active { background:var(--accent); border-color:var(--accent); }
+  .op-mod-dot.pending { background:var(--orange); border-color:var(--orange); }
+  .op-mod.active { color:var(--accent-text); font-weight:600; }
+  .op-mod.done { color:var(--green-text); }
+
+  /* ===== CONTAINER ===== */
+  .container { max-width:720px; margin:0 auto; padding:32px 24px 80px; }
+  .module-panel { display:none; }
+  .module-panel.active { display:block; animation:fadeIn 0.3s ease; }
+
+  /* ===== STEP HEADER ===== */
+  .step-header { margin-bottom:24px; }
+  .step-eyebrow { font-size:12px; color:var(--accent-text); font-weight:600; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:6px; display:flex; align-items:center; gap:8px; }
+  .step-time { font-size:11px; font-weight:400; color:var(--text-light); background:var(--bg); padding:2px 10px; border-radius:20px; text-transform:none; letter-spacing:0; }
+  .step-header h1 { font-size:22px; font-weight:700; color:var(--text); margin-bottom:6px; letter-spacing:-0.3px; }
+  .step-header p { font-size:14px; color:var(--text-sec); max-width:600px; }
+
+  /* ===== BANNERS ===== */
+  .why-banner { background:var(--accent-soft); border:1px solid rgba(108,92,231,0.12); border-radius:var(--rs); padding:12px 16px; margin-bottom:20px; font-size:13px; color:var(--accent-text); display:flex; gap:10px; align-items:flex-start; }
+  .why-banner .why-icon { font-size:16px; flex-shrink:0; }
+  .prefill-banner { background:var(--green-soft); border:1px solid rgba(16,185,129,0.15); border-radius:var(--rs); padding:12px 16px; margin-bottom:20px; font-size:13px; color:var(--green-text); display:flex; gap:10px; align-items:flex-start; }
+  .prefill-banner .pf-icon { font-size:16px; flex-shrink:0; }
+
+  /* ===== CARD ===== */
+  .card { background:var(--white); border:1px solid var(--border); border-radius:var(--r); margin-bottom:16px; box-shadow:var(--shadow-sm); }
+  .card-header { padding:14px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .card-header h3 { font-size:14px; font-weight:600; }
+  .card-body { padding:18px 20px; }
+  .card-footer { padding:12px 20px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; background:var(--bg); border-radius:0 0 var(--r) var(--r); }
+
+  /* ===== FORM ===== */
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .full { grid-column:1/-1; }
+  .fg { display:flex; flex-direction:column; gap:4px; }
+  .fl { font-size:12px; font-weight:600; color:var(--text-sec); display:flex; align-items:center; gap:6px; }
+  .fl .opt { font-size:11px; color:var(--text-light); font-weight:400; }
+  .fi { padding:9px 13px; background:var(--white); border:1.5px solid var(--border); border-radius:var(--rs); color:var(--text); font-size:13px; transition:border-color 0.15s,box-shadow 0.15s; font-family:inherit; }
+  .fi:focus { outline:none; border-color:var(--border-focus); box-shadow:0 0 0 3px var(--accent-soft); }
+  .fi.prefilled { border-color:rgba(16,185,129,0.35); background:rgba(16,185,129,0.03); }
+  .fi-hint { font-size:11px; color:var(--text-light); }
+  .fi-suffix-wrap { position:relative; }
+  .fi-suffix-wrap .fi { padding-right:36px; width:100%; }
+  .fi-suffix { position:absolute; right:12px; top:50%; transform:translateY(-50%); color:var(--text-light); font-size:13px; }
+  select.fi { appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239496ad'%3E%3Cpath d='M2 4l4 4 4-4'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; padding-right:32px; cursor:pointer; }
+
+  /* Toggle */
+  .toggle-row { display:flex; align-items:center; justify-content:space-between; padding:8px 0; }
+  .toggle-label { font-size:13px; color:var(--text-sec); }
+  .toggle { width:40px; height:22px; background:var(--border); border-radius:11px; position:relative; cursor:pointer; transition:background 0.2s; }
+  .toggle.on { background:var(--accent); }
+  .toggle::after { content:''; position:absolute; width:16px; height:16px; border-radius:50%; background:white; top:3px; left:3px; transition:transform 0.2s; box-shadow:0 1px 3px rgba(0,0,0,0.15); }
+  .toggle.on::after { transform:translateX(18px); }
+
+  /* Upload */
+  .upload-zone { border:2px dashed var(--border); border-radius:var(--rs); padding:28px 20px; text-align:center; cursor:pointer; transition:border-color 0.15s,background 0.15s; background:var(--bg); }
+  .upload-zone:hover { border-color:var(--accent); background:var(--accent-soft); }
+  .upload-zone .uz-text { font-size:13px; color:var(--text-sec); }
+  .upload-zone .uz-text strong { color:var(--accent-text); }
+
+  /* Buttons */
+  .btn { padding:9px 22px; border-radius:var(--rs); font-size:13px; font-weight:600; cursor:pointer; border:none; transition:all 0.15s; font-family:inherit; }
+  .btn-primary { background:var(--accent); color:white; }
+  .btn-primary:hover { background:#5b4cdb; box-shadow:0 2px 8px rgba(108,92,231,0.3); }
+  .btn-teal { background:var(--teal); color:white; }
+  .btn-teal:hover { background:#00917c; }
+  .btn-ghost { background:var(--white); color:var(--text-sec); border:1.5px solid var(--border); }
+  .btn-ghost:hover { border-color:var(--text-light); color:var(--text); }
+  .btn-sm { padding:6px 14px; font-size:12px; }
+  .btn-link { background:none; border:none; color:var(--accent-text); font-size:12px; cursor:pointer; font-weight:500; font-family:inherit; }
+  .btn-link:hover { text-decoration:underline; }
+
+  /* Tags */
+  .tag { display:inline-flex; align-items:center; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:500; background:var(--bg); border:1px solid var(--border); color:var(--text-sec); }
+  .tag-green { background:var(--green-soft); color:var(--green-text); border-color:rgba(16,185,129,0.2); }
+  .tag-orange { background:var(--orange-soft); color:var(--orange-text); border-color:rgba(245,158,11,0.2); }
+  .tag-teal { background:var(--teal-soft); color:var(--teal-text); border-color:rgba(0,191,166,0.2); }
+
+  /* Table */
+  .data-table { width:100%; border-collapse:collapse; font-size:13px; }
+  .data-table th { text-align:left; padding:9px 14px; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-light); font-weight:600; border-bottom:1px solid var(--border); background:var(--bg); }
+  .data-table td { padding:9px 14px; border-bottom:1px solid var(--border); vertical-align:middle; }
+  .data-table tr:last-child td { border:none; }
+  .data-table .fi { padding:5px 10px; font-size:12px; }
+
+  /* Brand pills */
+  .brand-pills { display:flex; gap:8px; margin-bottom:16px; }
+  .brand-pill { padding:6px 16px; border:1.5px solid var(--border); border-radius:var(--rs); font-size:13px; cursor:pointer; background:var(--white); color:var(--text-sec); transition:all 0.15s; font-weight:500; }
+  .brand-pill.active { background:var(--accent); color:white; border-color:var(--accent); }
+  .brand-pill:hover:not(.active) { border-color:var(--accent); color:var(--accent-text); }
+
+  /* Inner tabs */
+  .inner-tabs { display:flex; gap:0; border-bottom:1px solid var(--border); }
+  .inner-tab { padding:11px 18px; font-size:13px; color:var(--text-light); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; transition:all 0.15s; font-weight:500; }
+  .inner-tab:hover { color:var(--text); }
+  .inner-tab.active { color:var(--accent-text); border-bottom-color:var(--accent); }
+
+  /* Summary row */
+  .summary-row { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; background:var(--bg); border:1px solid var(--border); border-radius:var(--rs); }
+  .summary-row .sr-label { font-size:13px; font-weight:600; color:var(--text-sec); }
+  .summary-row .sr-value { font-size:16px; font-weight:700; color:var(--accent); }
+
+  /* Downstream uses */
+  .uses-strip { display:flex; flex-wrap:wrap; gap:6px; margin-top:18px; padding-top:14px; border-top:1px solid var(--border); }
+  .uses-strip .uses-label { width:100%; font-size:10px; text-transform:uppercase; letter-spacing:0.8px; color:var(--text-light); font-weight:600; margin-bottom:2px; }
+  .use-tag { padding:3px 10px; border-radius:5px; font-size:11px; background:var(--bg); border:1px solid var(--border); color:var(--text-light); }
+
+  /* Integration cards */
+  .int-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .int-card { display:flex; align-items:center; justify-content:space-between; padding:14px 16px; background:var(--white); border:1.5px solid var(--border); border-radius:var(--rs); transition:border-color 0.15s; }
+  .int-card:hover { border-color:var(--accent); }
+  .int-card-info h4 { font-size:13px; font-weight:600; }
+  .int-card-info p { font-size:11px; color:var(--text-light); }
+  .int-grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+  .conn-card { padding:16px; background:var(--bg); border:1.5px solid var(--border); border-radius:var(--rs); text-align:center; transition:all 0.15s; cursor:pointer; }
+  .conn-card:hover { border-color:var(--accent); background:var(--accent-soft); }
+  .conn-card h4 { font-size:13px; font-weight:600; margin:6px 0 3px; }
+  .conn-card p { font-size:11px; color:var(--text-light); }
+
+  /* Color swatches */
+  .swatch-row { display:flex; gap:14px; margin-top:6px; }
+  .swatch { display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .swatch-circle { width:40px; height:40px; border-radius:10px; border:2px solid var(--border); cursor:pointer; transition:transform 0.1s; }
+  .swatch-circle:hover { transform:scale(1.08); }
+  .swatch span { font-size:10px; color:var(--text-light); }
+
+  /* Steps nav inside business */
+  .step-panel { display:none; }
+  .step-panel.active { display:block; animation:fadeIn 0.3s ease; }
+
+  .sub-progress { display:flex; justify-content:space-between; margin-bottom:24px; background:var(--white); border:1px solid var(--border); border-radius:var(--r); padding:14px 20px; }
+  .sp-item { display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; flex:1; }
+  .sp-dot { width:10px; height:10px; border-radius:50%; border:2px solid var(--border); background:var(--white); transition:all 0.2s; }
+  .sp-item.done .sp-dot { background:var(--green); border-color:var(--green); }
+  .sp-item.active .sp-dot { background:var(--accent); border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+  .sp-label { font-size:10px; color:var(--text-light); white-space:nowrap; }
+  .sp-item.active .sp-label { color:var(--accent-text); font-weight:600; }
+  .sp-item.done .sp-label { color:var(--green-text); }
+
+  /* ===== BILLING-SPECIFIC ===== */
+  .billing-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px; }
+  .b-stat { background:var(--white); border:1px solid var(--border); border-radius:var(--rs); padding:14px 16px; }
+  .b-stat-label { font-size:11px; color:var(--text-light); font-weight:600; text-transform:uppercase; letter-spacing:0.4px; }
+  .b-stat-value { font-size:20px; font-weight:700; color:var(--text); margin-top:4px; }
+  .b-stat-sub { font-size:11px; color:var(--text-light); margin-top:2px; }
+
+  /* Product cards */
+  .product-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .product-card { background:var(--white); border:1.5px solid var(--border); border-radius:var(--r); overflow:hidden; transition:border-color 0.15s; }
+  .product-card:hover { border-color:var(--accent); }
+  .product-card.active-product { border-color:var(--teal); }
+  .product-card.fomo { border-color:var(--border); background:var(--bg); }
+  .pc-header { padding:14px 16px; display:flex; align-items:center; justify-content:space-between; }
+  .pc-header h4 { font-size:14px; font-weight:600; }
+  .pc-body { padding:0 16px 14px; }
+  .pc-pricing { font-size:13px; color:var(--text-sec); margin-top:4px; }
+  .pc-pricing strong { color:var(--text); font-size:15px; }
+  .pc-locations { font-size:12px; color:var(--text-light); }
+  .pc-fomo-stat { font-size:12px; color:var(--accent-text); background:var(--accent-soft); padding:8px 12px; border-radius:8px; margin-top:8px; }
+  .pc-footer { padding:10px 16px; border-top:1px solid var(--border); display:flex; gap:8px; flex-wrap:wrap; }
+
+  /* Billing group card */
+  .bg-card { background:var(--white); border:1px solid var(--border); border-radius:var(--r); margin-bottom:16px; }
+  .bg-header { padding:14px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .bg-header h3 { font-size:14px; font-weight:600; display:flex; align-items:center; gap:8px; }
+  .bg-body { padding:18px 20px; }
+  .bg-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .bg-field { }
+  .bg-field-label { font-size:11px; color:var(--text-light); font-weight:600; text-transform:uppercase; letter-spacing:0.3px; }
+  .bg-field-value { font-size:14px; color:var(--text); margin-top:2px; }
+  .bg-footer { padding:12px 20px; border-top:1px solid var(--border); background:var(--bg); border-radius:0 0 var(--r) var(--r); display:flex; justify-content:space-between; align-items:center; }
+
+  /* Completion */
+  .complete-wrap { text-align:center; padding:48px 20px; }
+  .complete-icon { width:64px; height:64px; border-radius:50%; background:var(--green-soft); display:flex; align-items:center; justify-content:center; margin:0 auto 20px; font-size:28px; }
+  .complete-wrap h1 { font-size:22px; margin-bottom:8px; }
+  .complete-wrap p { color:var(--text-sec); font-size:14px; max-width:480px; margin:0 auto 28px; }
+  .module-cards { display:grid; grid-template-columns:1fr 1fr; gap:12px; max-width:520px; margin:0 auto; }
+  .mod-card { background:var(--white); border:1.5px solid var(--border); border-radius:var(--r); padding:16px; text-align:left; cursor:pointer; transition:all 0.15s; }
+  .mod-card:hover { border-color:var(--accent); box-shadow:var(--shadow-md); }
+  .mod-card.ready { border-color:var(--green); }
+  .mod-card h4 { font-size:13px; font-weight:600; margin-bottom:3px; }
+  .mod-card.ready h4 { color:var(--green-text); }
+  .mod-card p { font-size:12px; color:var(--text-light); }
+  .sd { width:7px; height:7px; border-radius:50%; display:inline-block; margin-right:4px; }
+  .sd.green { background:var(--green); }
+  .sd.orange { background:var(--orange); }
+
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+  @media (max-width:780px) {
+    .container { padding:24px 16px 60px; }
+    .form-grid { grid-template-columns:1fr; }
+    .sub-progress { display:none; }
+    .int-grid,.int-grid-3 { grid-template-columns:1fr; }
+    .module-cards { grid-template-columns:1fr; }
+    .billing-stats { grid-template-columns:1fr 1fr; }
+    .product-grid { grid-template-columns:1fr; }
+    .bg-grid { grid-template-columns:1fr; }
+    .module-tabs { overflow-x:auto; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== TOP BAR ===== -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo">Loop</div>
+    <div class="topbar-divider"></div>
+    <div class="topbar-label">Onboarding Portal</div>
+  </div>
+  <div class="topbar-right">
+    <div class="save-status"><div class="save-dot"></div> Auto-saved</div>
+    <a class="help-link" href="#">Need help? Talk to us</a>
+  </div>
+</div>
+
+<!-- ===== MODULE TABS ===== -->
+<div class="module-tabs" id="module-tabs">
+  <div class="mod-tab active" onclick="showModule('access')">
+    Access
+    <span class="mt-badge done" id="badge-access">Complete</span>
+  </div>
+  <div class="mod-tab" onclick="showModule('business')">
+    Business
+    <span class="mt-badge active" id="badge-business">In Progress</span>
+  </div>
+  <div class="mod-tab" onclick="showModule('billing')">
+    Billing
+    <span class="mt-badge pending" id="badge-billing">Pending</span>
+  </div>
+  <div class="mod-tab" onclick="showModule('technology')">
+    Technology
+    <span class="mt-badge pending" id="badge-technology">Pending</span>
+  </div>
+</div>
+
+<!-- ===== OVERALL PROGRESS ===== -->
+<div class="overall-progress">
+  <div class="op-top">
+    <div class="op-text"><strong id="op-label">2 of 4 modules</strong> &mdash; Business onboarding in progress</div>
+    <div class="op-text" style="color:var(--text-light); font-size:12px;" id="op-time">~18 min remaining</div>
+  </div>
+  <div class="op-bar"><div class="op-fill" id="op-fill" style="width:35%"></div></div>
+  <div class="op-modules" id="op-modules">
+    <div class="op-mod done"><div class="op-mod-dot done"></div>Access</div>
+    <div class="op-mod active"><div class="op-mod-dot active"></div>Business</div>
+    <div class="op-mod"><div class="op-mod-dot pending"></div>Billing</div>
+    <div class="op-mod"><div class="op-mod-dot"></div>Technology</div>
+  </div>
+</div>
+
+<!-- ===== MAIN CONTENT ===== -->
+<div class="container">
+
+<!-- ============================================================ -->
+<!-- ==================== ACCESS MODULE ========================= -->
+<!-- ============================================================ -->
+<div id="mod-access" class="module-panel active">
+  <div class="step-header">
+    <div class="step-eyebrow">Access Onboarding <span class="step-time">Completed</span></div>
+    <h1>Platform Access</h1>
+    <p>Your marketplace accounts are connected and store access is verified across all platforms.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h3>Access Status</h3><span class="tag tag-green">Complete</span></div>
+    <div class="card-body" style="padding:0;overflow-x:auto;">
+      <table class="data-table">
+        <thead><tr><th>Platform</th><th>Stores Connected</th><th>Status</th><th>Connected On</th></tr></thead>
+        <tbody>
+          <tr><td><strong>DoorDash</strong></td><td>20 of 20</td><td><span class="tag tag-green">100%</span></td><td>Apr 8, 2026</td></tr>
+          <tr><td><strong>UberEats</strong></td><td>20 of 20</td><td><span class="tag tag-green">100%</span></td><td>Apr 8, 2026</td></tr>
+          <tr><td><strong>Grubhub</strong></td><td>16 of 20</td><td><span class="tag tag-orange">80%</span></td><td>Apr 9, 2026</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="why-banner">
+    <span class="why-icon">i</span>
+    <div><strong>Access threshold met.</strong> 80%+ stores connected across platforms. You can proceed with Business, Billing, and Technology onboarding in parallel. Remaining 4 Grubhub stores can be added anytime.</div>
+  </div>
+
+  <div style="text-align:right;">
+    <button class="btn btn-primary" onclick="showModule('business')">Continue to Business Setup &rarr;</button>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- ==================== BUSINESS MODULE ======================= -->
+<!-- ============================================================ -->
+<div id="mod-business" class="module-panel">
+
+  <!-- Sub-step progress -->
+  <div class="sub-progress" id="biz-progress">
+    <div class="sp-item active" onclick="showBizStep('biz1')"><div class="sp-dot"></div><div class="sp-label">Verify</div></div>
+    <div class="sp-item" onclick="showBizStep('biz2')"><div class="sp-dot"></div><div class="sp-label">Locations</div></div>
+    <div class="sp-item" onclick="showBizStep('biz3')"><div class="sp-dot"></div><div class="sp-label">Calendar</div></div>
+    <div class="sp-item" onclick="showBizStep('biz4')"><div class="sp-dot"></div><div class="sp-label">People</div></div>
+    <div class="sp-item" onclick="showBizStep('biz5')"><div class="sp-dot"></div><div class="sp-label">Costs</div></div>
+    <div class="sp-item" onclick="showBizStep('biz6')"><div class="sp-dot"></div><div class="sp-label">Brand</div></div>
+  </div>
+
+  <!-- BIZ STEP 1: Verify -->
+  <div id="biz1" class="step-panel active">
+    <div class="step-header">
+      <div class="step-eyebrow">Business &middot; Step 1 of 6 <span class="step-time">~1 min</span></div>
+      <h1>Verify Your Business</h1>
+      <p>We've pulled this from your account setup. Confirm everything looks right.</p>
+    </div>
+    <div class="prefill-banner"><span class="pf-icon">&#9889;</span><div><strong>Already filled in.</strong> Your AE provided these details. Review and correct anything that's off.</div></div>
+    <div class="card">
+      <div class="card-header"><h3>Your Brands</h3><button class="btn btn-sm btn-ghost" onclick="addBrandRow()">+ Add Brand</button></div>
+      <div class="card-body" style="padding:0;overflow-x:auto;">
+        <table class="data-table">
+          <thead><tr><th>Brand</th><th>Type</th><th>Ownership</th><th>Corporate Entity</th><th>Locations</th></tr></thead>
+          <tbody id="brands-tbody">
+            <tr><td><strong>Dave's Hot Chicken</strong></td><td><span class="tag">Real</span></td><td><select class="fi prefilled" style="width:125px;"><option selected>Franchisee</option><option>Franchisor</option><option>Fully Owned</option><option>CPA</option></select></td><td><input class="fi prefilled" style="width:155px;" value="Dave's Hot Chicken Inc."></td><td>12</td></tr>
+            <tr><td><strong>Slim Chickens</strong></td><td><span class="tag">Real</span></td><td><select class="fi prefilled" style="width:125px;"><option selected>Franchisee</option><option>Franchisor</option><option>Fully Owned</option><option>CPA</option></select></td><td><input class="fi prefilled" style="width:155px;" value="Slim Chickens LLC"></td><td>8</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><h3>Corporate Involvement</h3></div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="fg"><label class="fl">Dave's Hot Chicken</label><select class="fi prefilled"><option>None</option><option selected>Aware of deployment</option><option>Active participant</option></select></div>
+          <div class="fg"><label class="fl">Slim Chickens</label><select class="fi prefilled"><option selected>None</option><option>Aware of deployment</option><option>Active participant</option></select></div>
+        </div>
+      </div>
+      <div class="card-footer"><span style="font-size:12px;color:var(--text-light);">Auto-saved</span><button class="btn btn-primary" onclick="bizGoTo('biz2',2)">Looks good, continue &rarr;</button></div>
+    </div>
+  </div>
+
+  <!-- BIZ STEP 2: Locations -->
+  <div id="biz2" class="step-panel">
+    <div class="step-header">
+      <div class="step-eyebrow">Business &middot; Step 2 of 6 <span class="step-time">~3 min</span></div>
+      <h1>Locations & Regions</h1>
+      <p>We pulled your locations from DoorDash and UberEats. Add region groupings and open dates for vintage and same-store performance.</p>
+    </div>
+    <div class="prefill-banner"><span class="pf-icon">&#9889;</span><div><strong>20 locations auto-detected</strong> from marketplace accounts. 12 Dave's, 8 Slim Chickens.</div></div>
+    <div class="why-banner"><span class="why-icon">i</span><div><strong>Why regions & open dates?</strong> Regions let you filter by market. Open dates determine same-store-sales eligibility. Both used across every Loop module.</div></div>
+    <div class="card">
+      <div class="inner-tabs">
+        <div class="inner-tab active" onclick="switchLocTab('inline')">Edit Inline</div>
+        <div class="inner-tab" onclick="switchLocTab('bulk')">Bulk Upload (CSV)</div>
+      </div>
+      <div id="loc-inline">
+        <div class="card-body" style="padding:0;overflow-x:auto;">
+          <table class="data-table" style="min-width:750px;" id="loc-table">
+            <thead><tr><th>Location</th><th>Brand</th><th>Ownership</th><th>Region</th><th>Franchisee Group</th><th>Open Date</th></tr></thead>
+            <tbody>
+              <tr><td><strong>#101 Downtown Tampa</strong><div style="font-size:11px;color:var(--text-light);">412 W Kennedy Blvd, Tampa FL</div></td><td><span class="tag">Dave's</span></td><td><select class="fi loc-ownership" style="width:100px;"><option>Corporate</option><option selected>Franchisee</option><option>Franchisor</option><option>Fully Owned</option><option>CPA</option></select></td><td><input class="fi loc-region" style="width:90px;" value="Florida"></td><td><input class="fi" style="width:90px;" value="Tampa Bay"></td><td><input type="date" class="fi" style="width:120px;" value="2024-03-15"></td></tr>
+              <tr><td><strong>#102 Westchase</strong><div style="font-size:11px;color:var(--text-light);">9608 W Linebaugh Ave, Tampa FL</div></td><td><span class="tag">Dave's</span></td><td><select class="fi loc-ownership" style="width:100px;"><option>Corporate</option><option selected>Franchisee</option><option>Franchisor</option><option>Fully Owned</option><option>CPA</option></select></td><td><input class="fi loc-region" style="width:90px;" value="Florida"></td><td><input class="fi" style="width:90px;" value="Tampa Bay"></td><td><input type="date" class="fi" style="width:120px;" value="2024-06-01"></td></tr>
+              <tr><td><strong>#201 Midtown Atlanta</strong><div style="font-size:11px;color:var(--text-light);">725 Ponce De Leon Ave, Atlanta GA</div></td><td><span class="tag">Slim</span></td><td><select class="fi loc-ownership" style="width:100px;"><option>Corporate</option><option selected>Franchisee</option><option>Franchisor</option><option>Fully Owned</option><option>CPA</option></select></td><td><input class="fi loc-region" style="width:90px;" value="Georgia"></td><td><input class="fi" style="width:90px;" value="Metro Atlanta"></td><td><input type="date" class="fi" style="width:120px;" value="2023-09-20"></td></tr>
+              <tr><td colspan="6" style="text-align:center;color:var(--text-light);font-size:12px;padding:12px;">+ 17 more locations</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card-footer"><div style="display:flex;gap:8px;"><button class="btn btn-sm btn-ghost" onclick="applyOwnershipToAll()">Apply "Franchisee" to all</button><button class="btn btn-sm btn-ghost" onclick="fillRegionFromFirst()">Fill Region from row 1</button></div><span></span></div>
+      </div>
+      <div id="loc-bulk" style="display:none;">
+        <div class="card-body">
+          <div class="upload-zone" onclick="document.getElementById('csv-file-input').click()">
+            <input type="file" id="csv-file-input" accept=".csv,.xlsx" style="display:none;" onchange="handleCSVUpload(this)">
+            <div style="font-size:28px;opacity:0.3;margin-bottom:6px;">&#8682;</div>
+            <div class="uz-text">Drop a CSV/Excel file or <strong>click to browse</strong></div>
+            <div style="font-size:11px;color:var(--text-light);margin-top:6px;">Columns: Store#, Brand, Ownership, Region, FranchiseeGroup, OpenDate</div>
+          </div>
+          <div id="csv-upload-status" style="display:none;text-align:center;margin-top:10px;padding:10px;background:var(--green-soft);border-radius:var(--rs);font-size:13px;color:var(--green-text);"></div>
+          <div style="text-align:center;margin-top:10px;"><button class="btn-link" onclick="downloadCSVTemplate()">Download CSV template</button></div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:18px;">
+      <button class="btn btn-ghost" onclick="bizGoTo('biz1',1)">&larr; Back</button>
+      <button class="btn btn-primary" onclick="bizGoTo('biz3',3)">Continue &rarr;</button>
+    </div>
+  </div>
+
+  <!-- BIZ STEP 3: Calendar -->
+  <div id="biz3" class="step-panel">
+    <div class="step-header">
+      <div class="step-eyebrow">Business &middot; Step 3 of 6 <span class="step-time">~1 min</span></div>
+      <h1>Calendar & Comp Rules</h1>
+      <p>How do you measure time and which stores count as "comped" for same-store comparisons?</p>
+    </div>
+    <div class="why-banner"><span class="why-icon">i</span><div><strong>Set once, used everywhere.</strong> Your fiscal calendar powers period reporting in Balance, campaign cycles in TruROI, and operational cadences in Ops.</div></div>
+    <div class="card">
+      <div class="card-header"><h3>Fiscal Calendar</h3></div>
+      <div class="card-body">
+        <div class="brand-pills"><div class="brand-pill active">Dave's Hot Chicken</div><div class="brand-pill">Slim Chickens</div></div>
+        <div class="form-grid">
+          <div class="fg"><label class="fl">Fiscal year starts in</label><select class="fi"><option selected>January</option><option>February</option><option>April</option><option>July</option><option>October</option></select></div>
+          <div class="fg"><label class="fl">Period type</label><select class="fi"><option selected>Calendar Month</option><option>4-4-5</option><option>4-5-4</option><option>5-4-4</option><option>Custom</option></select></div>
+        </div>
+        <div class="toggle-row" style="margin-top:10px;"><span class="toggle-label">Same calendar for all brands?</span><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><h3>Comp Definition</h3></div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="fg"><label class="fl">A store is "comped" after</label><select class="fi"><option selected>12 months from open date</option><option>18 months</option><option>Custom</option></select><span class="fi-hint">Newer stores excluded from same-store-sales</span></div>
+          <div class="fg"><label class="fl">SSS eligibility</label><select class="fi"><option selected>Same as comp definition</option><option>Custom SSS rules</option></select></div>
+        </div>
+      </div>
+      <div class="card-footer"><button class="btn btn-ghost" onclick="bizGoTo('biz2',2)">&larr; Back</button><button class="btn btn-primary" onclick="bizGoTo('biz4',4)">Continue &rarr;</button></div>
+    </div>
+  </div>
+
+  <!-- BIZ STEP 4: People -->
+  <div id="biz4" class="step-panel">
+    <div class="step-header">
+      <div class="step-eyebrow">Business &middot; Step 4 of 6 <span class="step-time">~2 min</span></div>
+      <h1>People & Decisions</h1>
+      <p>Who runs marketing, who sees reports, and how do campaigns get approved?</p>
+    </div>
+    <div class="card">
+      <div class="card-header"><h3>Marketing Structure</h3></div>
+      <div class="card-body">
+        <div class="fg" style="margin-bottom:14px;">
+          <label class="fl">How is marketing managed today?</label>
+          <select class="fi prefilled" style="max-width:360px;"><option>We manage it ourselves</option><option selected>We work with marketplace reps</option><option>Agency handles it</option><option>Corporate runs national campaigns</option><option>Co-op (corporate + local)</option></select>
+          <span class="fi-hint">Pre-filled from AE.</span>
+        </div>
+        <div class="toggle-row"><span class="toggle-label">Corporate runs national campaigns affecting your stores?</span><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="toggle-row"><span class="toggle-label">Can you opt out of national campaigns?</span><div class="toggle" onclick="this.classList.toggle('on')"></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><h3>Key People</h3><button class="btn btn-sm btn-ghost" onclick="addPersonRow()">+ Add person</button></div>
+      <div class="card-body" style="padding:0;overflow-x:auto;">
+        <table class="data-table">
+          <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Brands</th><th>Reports</th><th>Decisions</th></tr></thead>
+          <tbody id="people-tbody">
+            <tr><td><input class="fi prefilled" value="Marcus Johnson"></td><td><input class="fi prefilled" value="marcus@example.com"></td><td><select class="fi" style="width:115px;"><option>Owner</option><option selected>Marketing</option><option>Operations</option><option>Finance</option></select></td><td><span class="tag">All</span></td><td style="text-align:center;"><input type="checkbox" checked></td><td style="text-align:center;"><input type="checkbox" checked></td></tr>
+            <tr><td><input class="fi" value="Sarah Chen"></td><td><input class="fi" value="sarah@example.com"></td><td><select class="fi" style="width:115px;"><option selected>Owner</option><option>Marketing</option><option>Operations</option><option>Finance</option></select></td><td><span class="tag">All</span></td><td style="text-align:center;"><input type="checkbox" checked></td><td style="text-align:center;"><input type="checkbox"></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card-footer">
+        <span><input type="file" id="people-csv-input" accept=".csv,.xlsx" style="display:none;" onchange="handlePeopleCSV(this)"><button class="btn-link" onclick="document.getElementById('people-csv-input').click()">Upload a list (CSV)</button></span>
+        <button class="btn btn-primary" onclick="bizGoTo('biz5',5)">Continue &rarr;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BIZ STEP 5: Costs -->
+  <div id="biz5" class="step-panel">
+    <div class="step-header">
+      <div class="step-eyebrow">Business &middot; Step 5 of 6 <span class="step-time">~2 min</span></div>
+      <h1>Cost Structure</h1>
+      <p>A rough breakdown of your costs per brand. Powers ROI and flow-through analysis.</p>
+    </div>
+    <div class="why-banner"><span class="why-icon">i</span><div><strong>Rough estimates are fine.</strong> We use these for every marketing dollar's profitability. Refine later under Settings.</div></div>
+    <div class="card">
+      <div class="card-header"><h3>Costs by Brand</h3></div>
+      <div class="card-body">
+        <div class="brand-pills" style="margin-bottom:18px;"><div class="brand-pill active">Dave's Hot Chicken</div><div class="brand-pill">Slim Chickens</div></div>
+        <div class="form-grid">
+          <div class="fg"><label class="fl">Food Costs</label><div class="fi-suffix-wrap"><input class="fi" value="32"><span class="fi-suffix">%</span></div></div>
+          <div class="fg"><label class="fl">Packaging</label><div class="fi-suffix-wrap"><input class="fi" value="6"><span class="fi-suffix">%</span></div></div>
+          <div class="fg"><label class="fl">Royalty <span class="opt">franchisee</span></label><div class="fi-suffix-wrap"><input class="fi" value="5"><span class="fi-suffix">%</span></div></div>
+          <div class="fg"><label class="fl">Ad Fund <span class="opt">franchisee</span></label><div class="fi-suffix-wrap"><input class="fi" value="3"><span class="fi-suffix">%</span></div></div>
+          <div class="fg"><label class="fl">Labour</label><div class="fi-suffix-wrap"><input class="fi" value="27"><span class="fi-suffix">%</span></div></div>
+          <div class="fg"><label class="fl">Rent / Occupancy</label><div class="fi-suffix-wrap"><input class="fi" value="9"><span class="fi-suffix">%</span></div></div>
+          <div class="fg"><label class="fl">Facilities <span class="opt">optional</span></label><div class="fi-suffix-wrap"><input class="fi" placeholder="e.g. 4"><span class="fi-suffix">%</span></div></div>
+          <div class="fg"><label class="fl">Other <span class="opt">optional</span></label><div class="fi-suffix-wrap"><input class="fi" placeholder="e.g. 3"><span class="fi-suffix">%</span></div></div>
+          <div class="full"><div class="summary-row"><span class="sr-label">Total Costs / Implied Margin</span><span class="sr-value">82% costs &middot; 18% margin</span></div></div>
+          <div class="full"><div class="toggle-row"><span class="toggle-label">Same costs across all brands?</span><div class="toggle" onclick="this.classList.toggle('on')"></div></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><h3>Marketing Budget <span style="font-size:11px;font-weight:400;color:var(--text-light);margin-left:6px;">optional</span></h3></div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="fg"><label class="fl">Annual budget</label><div class="fi-suffix-wrap"><input class="fi" value="150000"><span class="fi-suffix">$</span></div></div>
+          <div class="fg"><label class="fl">Budget scope</label><select class="fi"><option selected>All platforms combined</option><option>By platform</option><option>By location</option></select></div>
+        </div>
+      </div>
+      <div class="card-footer"><button class="btn btn-ghost" onclick="bizGoTo('biz4',4)">&larr; Back</button><div style="display:flex;gap:12px;align-items:center;"><button class="btn-link">Skip for now</button><button class="btn btn-primary" onclick="bizGoTo('biz6',6)">Continue &rarr;</button></div></div>
+    </div>
+  </div>
+
+  <!-- BIZ STEP 6: Brand Identity -->
+  <div id="biz6" class="step-panel">
+    <div class="step-header">
+      <div class="step-eyebrow">Business &middot; Step 6 of 6 <span class="step-time">~1 min</span></div>
+      <h1>Brand Identity</h1>
+      <p>Logo, colors, and report style. Used for branded reports and communications.</p>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <div class="brand-pills" style="margin-bottom:18px;"><div class="brand-pill active">Dave's Hot Chicken</div><div class="brand-pill">Slim Chickens</div></div>
+        <div class="form-grid">
+          <div class="fg">
+            <label class="fl">Brand Logo</label>
+            <div id="logo-upload-zone" class="upload-zone" style="padding:14px;" onclick="document.getElementById('logo-file-input').click()">
+              <input type="file" id="logo-file-input" accept="image/*" style="display:none;" onchange="handleLogoUpload(this)">
+              <div id="logo-preview" style="margin-bottom:6px;">
+                <svg width="72" height="72" viewBox="0 0 80 80" fill="none" style="border-radius:12px;border:2px solid var(--border);background:white;">
+                  <rect width="80" height="80" rx="12" fill="#FFF5F5"/>
+                  <text x="40" y="32" text-anchor="middle" font-size="24" font-weight="800" fill="#e63946">D</text>
+                  <text x="40" y="50" text-anchor="middle" font-size="8" font-weight="700" fill="#e63946" letter-spacing="1">DAVE'S HOT</text>
+                  <text x="40" y="60" text-anchor="middle" font-size="8" font-weight="700" fill="#e63946" letter-spacing="1">CHICKEN</text>
+                </svg>
+              </div>
+              <div style="font-size:11px;color:var(--green-text);font-weight:600;">Auto-detected from website</div>
+              <div class="uz-text" style="font-size:12px;">Click to upload higher-res</div>
+            </div>
+          </div>
+          <div class="fg">
+            <label class="fl">Brand Colors</label>
+            <div class="swatch-row">
+              <div class="swatch"><div class="swatch-circle" style="background:#e63946;"></div><span>Primary</span></div>
+              <div class="swatch"><div class="swatch-circle" style="background:#1d3557;"></div><span>Secondary</span></div>
+              <div class="swatch"><div class="swatch-circle" style="background:#f1faee;"></div><span>Accent</span></div>
+            </div>
+            <span class="fi-hint" style="margin-top:8px;">Auto-extracted. Click any swatch to change.</span>
+          </div>
+          <div class="fg">
+            <label class="fl">Report Template <span class="opt">optional</span></label>
+            <div class="upload-zone" style="padding:14px;" onclick="document.getElementById('template-file-input').click()" id="template-upload-zone">
+              <input type="file" id="template-file-input" accept=".pptx,.pdf" style="display:none;" onchange="handleTemplateUpload(this)">
+              <div id="template-status"><div class="uz-text" style="font-size:12px;">Upload PPTX or PDF</div><div style="font-size:11px;color:var(--text-light);margin-top:3px;">For branded decks</div></div>
+            </div>
+          </div>
+          <div class="fg"><label class="fl">AI Persona Name <span class="opt">optional</span></label><input class="fi" placeholder="e.g. Dave Z, ChickenBot"><span class="fi-hint">Name your Loop AI assistant.</span></div>
+          <div class="fg"><label class="fl">Website</label><input class="fi prefilled" value="https://daveshotchicken.com"></div>
+          <div class="fg"><label class="fl">LinkedIn</label><input class="fi prefilled" value="https://linkedin.com/company/daves-hot-chicken"></div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <button class="btn btn-ghost" onclick="bizGoTo('biz5',5)">&larr; Back</button>
+        <button class="btn btn-primary" onclick="completeBusiness()">Complete Business Setup &rarr;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BIZ COMPLETE -->
+  <div id="biz-complete" class="step-panel">
+    <div class="complete-wrap">
+      <div class="complete-icon">&#10003;</div>
+      <h1>Business Setup Complete</h1>
+      <p>Your business profile is configured. Next up: set up your billing.</p>
+      <div style="display:flex;gap:12px;justify-content:center;">
+        <button class="btn btn-primary" onclick="showModule('billing')">Continue to Billing &rarr;</button>
+        <button class="btn btn-ghost" onclick="showModule('technology')">Skip to Technology</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- ==================== BILLING MODULE ======================== -->
+<!-- ============================================================ -->
+<div id="mod-billing" class="module-panel">
+
+  <!-- Billing inner tabs -->
+  <div class="card" style="margin-bottom:20px;">
+    <div class="inner-tabs" id="billing-tabs">
+      <div class="inner-tab active" onclick="showBillingTab('bill-overview')">Overview</div>
+      <div class="inner-tab" onclick="showBillingTab('bill-myloop')">My Loop</div>
+      <div class="inner-tab" onclick="showBillingTab('bill-groups')">Billing Groups</div>
+    </div>
+  </div>
+
+  <!-- BILLING: Overview -->
+  <div id="bill-overview" class="step-panel active">
+    <div class="step-header">
+      <div class="step-eyebrow">Billing &middot; Overview <span class="step-time">~2 min</span></div>
+      <h1>Billing Overview</h1>
+      <p>Review your contract, current billing summary, and payment status.</p>
+    </div>
+
+    <div class="billing-stats">
+      <div class="b-stat"><div class="b-stat-label">Total Billed (YTD)</div><div class="b-stat-value">$18,450</div><div class="b-stat-sub">Jan - May 2026</div></div>
+      <div class="b-stat"><div class="b-stat-label">Total Payments (YTD)</div><div class="b-stat-value">$15,200</div><div class="b-stat-sub">4 of 5 invoices paid</div></div>
+      <div class="b-stat"><div class="b-stat-label">Outstanding Balance</div><div class="b-stat-value" style="color:var(--orange);">$3,250</div><div class="b-stat-sub">1 invoice pending</div></div>
+      <div class="b-stat"><div class="b-stat-label">Next Invoice</div><div class="b-stat-value">Jun 1</div><div class="b-stat-sub">Est. $3,690.00</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>Contract</h3><span class="tag tag-green">Active</span></div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="fg"><label class="fl">Contract File</label><div style="display:flex;align-items:center;gap:8px;"><span style="font-size:18px;opacity:0.4;">&#128196;</span><a href="#" style="font-size:13px;color:var(--accent-text);text-decoration:none;">Hamm_Org_Loop_Agreement_2025.pdf</a></div><span class="fi-hint">Signed Dec 15, 2025 &middot; Annual</span></div>
+          <div class="fg"><label class="fl">Billing Cycle</label><select class="fi"><option selected>Monthly</option><option>Quarterly</option><option>Annual</option></select></div>
+          <div class="fg"><label class="fl">Payment Terms</label><select class="fi"><option selected>Net 15</option><option>Net 30</option><option>Due on receipt</option></select></div>
+          <div class="fg"><label class="fl">Currency</label><select class="fi"><option selected>USD ($)</option><option>CAD (C$)</option></select></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>Billing Contact</h3></div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="fg"><label class="fl">Name</label><input class="fi" value="Sarah Chen"></div>
+          <div class="fg"><label class="fl">Email</label><input class="fi" value="billing@hammorg.com"></div>
+          <div class="fg"><label class="fl">Phone</label><input class="fi" value="(555) 123-4567"></div>
+          <div class="fg"><label class="fl">Billing Address</label><input class="fi" value="100 Main St, Tampa FL 33602"></div>
+        </div>
+      </div>
+      <div class="card-footer"><span style="font-size:12px;color:var(--text-light);">Auto-saved</span><button class="btn btn-primary" onclick="showBillingTab('bill-myloop')">Continue to My Loop &rarr;</button></div>
+    </div>
+  </div>
+
+  <!-- BILLING: My Loop -->
+  <div id="bill-myloop" class="step-panel">
+    <div class="step-header">
+      <div class="step-eyebrow">Billing &middot; My Loop <span class="step-time">~2 min</span></div>
+      <h1>My Loop Products</h1>
+      <p>Your active products and modules available to enable. Pricing is per-location per-month (PPL/mo).</p>
+    </div>
+
+    <div class="why-banner"><span class="why-icon">i</span><div><strong>Your current plan.</strong> Active products are billed monthly. Explore additional modules below - your CSM can enable them within 24 hours.</div></div>
+
+    <div class="product-grid">
+      <!-- Active products -->
+      <div class="product-card active-product">
+        <div class="pc-header"><h4>TruROI+</h4><span class="tag tag-teal">Active</span></div>
+        <div class="pc-body">
+          <div class="pc-locations">6 Locations</div>
+          <div class="pc-pricing">$100 PPL/mo &rarr; <strong>$600/mo</strong></div>
+        </div>
+      </div>
+      <div class="product-card active-product">
+        <div class="pc-header"><h4>Recover</h4><span class="tag tag-teal">Active</span></div>
+        <div class="pc-body">
+          <div class="pc-locations">6 Locations</div>
+          <div class="pc-pricing">$15 PPL/mo &rarr; <strong>$90/mo</strong></div>
+        </div>
+      </div>
+
+      <!-- FOMO products -->
+      <div class="product-card fomo">
+        <div class="pc-header"><h4>Protect</h4><span class="tag tag-orange">Not enabled</span></div>
+        <div class="pc-body">
+          <div style="font-size:12px;color:var(--text-sec);">Proactively block fraudulent chargebacks before they hit your P&L</div>
+          <div class="pc-fomo-stat">QSR chains using Protect save avg. $2,400/loc/year</div>
+        </div>
+        <div class="pc-footer"><button class="btn btn-sm btn-teal" onclick="requestEnable('Protect')">Request to Enable</button><button class="btn btn-sm btn-ghost">Case Study</button></div>
+      </div>
+      <div class="product-card fomo">
+        <div class="pc-header"><h4>Balance</h4><span class="tag tag-orange">Not enabled</span></div>
+        <div class="pc-body">
+          <div style="font-size:12px;color:var(--text-sec);">Automated third-party payment reconciliation across all delivery platforms</div>
+          <div class="pc-fomo-stat">Operators recover 3-5% of missed payouts within 60 days</div>
+        </div>
+        <div class="pc-footer"><button class="btn btn-sm btn-teal" onclick="requestEnable('Balance')">Request to Enable</button><button class="btn btn-sm btn-ghost">Case Study</button></div>
+      </div>
+      <div class="product-card fomo">
+        <div class="pc-header"><h4>Loop Inspect</h4><span class="tag tag-orange">Not enabled</span></div>
+        <div class="pc-body">
+          <div style="font-size:12px;color:var(--text-sec);">Deep-dive analytics across every transaction, location, platform</div>
+          <div class="pc-fomo-stat">85% of enterprise chains use Inspect for ops reviews</div>
+        </div>
+        <div class="pc-footer"><button class="btn btn-sm btn-teal" onclick="requestEnable('Inspect')">Request to Enable</button><button class="btn btn-sm btn-ghost">Case Study</button></div>
+      </div>
+      <div class="product-card fomo">
+        <div class="pc-header"><h4>Smart Alerts</h4><span class="tag tag-orange">Not enabled</span></div>
+        <div class="pc-body">
+          <div style="font-size:12px;color:var(--text-sec);">Get notified when anomalies, outages, or disputes spike</div>
+          <div class="pc-fomo-stat">Teams respond 4x faster with real-time alerting</div>
+        </div>
+        <div class="pc-footer"><button class="btn btn-sm btn-teal" onclick="requestEnable('Smart Alerts')">Request to Enable</button><button class="btn btn-sm btn-ghost">Case Study</button></div>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;margin-top:20px;">
+      <button class="btn btn-ghost" onclick="showBillingTab('bill-overview')">&larr; Back</button>
+      <button class="btn btn-primary" onclick="showBillingTab('bill-groups')">Continue to Billing Groups &rarr;</button>
+    </div>
+  </div>
+
+  <!-- BILLING: Billing Groups -->
+  <div id="bill-groups" class="step-panel">
+    <div class="step-header">
+      <div class="step-eyebrow">Billing &middot; Billing Groups <span class="step-time">~3 min</span></div>
+      <h1>Billing Groups</h1>
+      <p>Set up billing groups to split invoices by region, entity, or however you manage payments. Each group gets its own invoice and payment method.</p>
+    </div>
+
+    <div class="why-banner"><span class="why-icon">i</span><div><strong>Why billing groups?</strong> If you have separate entities, regions, or cost centers that need independent invoicing and payment methods, create a group for each. Otherwise, one group covering all locations is fine.</div></div>
+
+    <!-- Group 1 -->
+    <div class="bg-card" id="bg-1">
+      <div class="bg-header">
+        <h3>Hamm Org - East Region <span class="tag tag-green" style="margin-left:8px;">Active</span></h3>
+        <button class="btn btn-sm btn-ghost" onclick="toggleEditGroup(1)">Edit</button>
+      </div>
+      <div class="bg-body">
+        <div class="bg-grid" id="bg-1-view">
+          <div class="bg-field"><div class="bg-field-label">Locations</div><div class="bg-field-value">4 locations</div></div>
+          <div class="bg-field"><div class="bg-field-label">Account Manager</div><div class="bg-field-value">Kara Sandoval</div></div>
+          <div class="bg-field"><div class="bg-field-label">Email</div><div class="bg-field-value">kara.sandoval@kellypartners.com</div></div>
+          <div class="bg-field"><div class="bg-field-label">Phone</div><div class="bg-field-value">(555) 123-4567</div></div>
+          <div class="bg-field"><div class="bg-field-label">Payment Method</div><div class="bg-field-value">Visa ****4242 &middot; Card on file</div></div>
+          <div class="bg-field"><div class="bg-field-label">Monthly Total</div><div class="bg-field-value" style="font-weight:700;color:var(--accent);">$460/mo</div></div>
+        </div>
+        <div class="bg-grid" id="bg-1-edit" style="display:none;">
+          <div class="fg"><label class="fl">Account Manager <span style="color:var(--red);">*</span></label><input class="fi" value="Kara Sandoval"></div>
+          <div class="fg"><label class="fl">Email <span style="color:var(--red);">*</span></label><input class="fi" value="kara.sandoval@kellypartners.com"></div>
+          <div class="fg"><label class="fl">Phone <span style="color:var(--red);">*</span></label><input class="fi" value="(555) 123-4567"></div>
+          <div class="fg"><label class="fl">Payment Method</label><select class="fi"><option selected>Visa ****4242</option><option>ACH / Bank Transfer</option><option>+ Add new payment method</option></select></div>
+        </div>
+      </div>
+      <div class="bg-footer" id="bg-1-footer" style="display:none;">
+        <span style="font-size:11px;color:var(--text-light);">Changes trigger email to Loop Finance for review</span>
+        <div style="display:flex;gap:8px;"><button class="btn btn-sm btn-ghost" onclick="toggleEditGroup(1)">Cancel</button><button class="btn btn-sm btn-primary" onclick="saveGroup(1)">Save Changes</button></div>
+      </div>
+    </div>
+
+    <!-- Group 2 -->
+    <div class="bg-card" id="bg-2">
+      <div class="bg-header">
+        <h3>Hamm Org - West Region <span class="tag tag-green" style="margin-left:8px;">Active</span></h3>
+        <button class="btn btn-sm btn-ghost" onclick="toggleEditGroup(2)">Edit</button>
+      </div>
+      <div class="bg-body">
+        <div class="bg-grid" id="bg-2-view">
+          <div class="bg-field"><div class="bg-field-label">Locations</div><div class="bg-field-value">2 locations</div></div>
+          <div class="bg-field"><div class="bg-field-label">Account Manager</div><div class="bg-field-value">Tom Richards</div></div>
+          <div class="bg-field"><div class="bg-field-label">Email</div><div class="bg-field-value">tom.richards@hammorg.com</div></div>
+          <div class="bg-field"><div class="bg-field-label">Phone</div><div class="bg-field-value">(555) 987-6543</div></div>
+          <div class="bg-field"><div class="bg-field-label">Payment Method</div><div class="bg-field-value">ACH / Bank Transfer &middot; Auto-pay enabled</div></div>
+          <div class="bg-field"><div class="bg-field-label">Monthly Total</div><div class="bg-field-value" style="font-weight:700;color:var(--accent);">$230/mo</div></div>
+        </div>
+        <div class="bg-grid" id="bg-2-edit" style="display:none;">
+          <div class="fg"><label class="fl">Account Manager <span style="color:var(--red);">*</span></label><input class="fi" value="Tom Richards"></div>
+          <div class="fg"><label class="fl">Email <span style="color:var(--red);">*</span></label><input class="fi" value="tom.richards@hammorg.com"></div>
+          <div class="fg"><label class="fl">Phone <span style="color:var(--red);">*</span></label><input class="fi" value="(555) 987-6543"></div>
+          <div class="fg"><label class="fl">Payment Method</label><select class="fi"><option>Visa ****4242</option><option selected>ACH / Bank Transfer</option><option>+ Add new payment method</option></select></div>
+        </div>
+      </div>
+      <div class="bg-footer" id="bg-2-footer" style="display:none;">
+        <span style="font-size:11px;color:var(--text-light);">Changes trigger email to Loop Finance for review</span>
+        <div style="display:flex;gap:8px;"><button class="btn btn-sm btn-ghost" onclick="toggleEditGroup(2)">Cancel</button><button class="btn btn-sm btn-primary" onclick="saveGroup(2)">Save Changes</button></div>
+      </div>
+    </div>
+
+    <button class="btn btn-ghost" onclick="addBillingGroup()" style="width:100%;text-align:center;padding:14px;">+ Add Billing Group</button>
+
+    <div style="display:flex;justify-content:space-between;margin-top:20px;">
+      <button class="btn btn-ghost" onclick="showBillingTab('bill-myloop')">&larr; Back</button>
+      <button class="btn btn-primary" onclick="completeBilling()">Complete Billing Setup &rarr;</button>
+    </div>
+  </div>
+
+  <!-- BILLING COMPLETE -->
+  <div id="bill-complete" class="step-panel">
+    <div class="complete-wrap">
+      <div class="complete-icon">&#10003;</div>
+      <h1>Billing Setup Complete</h1>
+      <p>Your billing groups, payment methods, and product plan are configured. Invoices will generate on the 1st of each month.</p>
+      <div style="display:flex;gap:12px;justify-content:center;">
+        <button class="btn btn-primary" onclick="showModule('technology')">Continue to Technology &rarr;</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- ==================== TECHNOLOGY MODULE ===================== -->
+<!-- ============================================================ -->
+<div id="mod-technology" class="module-panel">
+  <div class="step-header">
+    <div class="step-eyebrow">Technology &middot; Integrations <span class="step-time">~2 min</span></div>
+    <h1>Technology & Integrations</h1>
+    <p>Connect your communication, data, and operational tools. Alerts, approvals, and data feeds flow through these across all modules.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h3>Communication</h3></div>
+    <div class="card-body">
+      <div class="int-grid">
+        <div class="int-card"><div class="int-card-info"><h4>Slack</h4><p>Alerts, reports, approvals</p></div><button class="btn btn-sm btn-primary" onclick="connectIntegration(this,'Slack')">Connect</button></div>
+        <div class="int-card"><div class="int-card-info"><h4>Microsoft Teams</h4><p>Alerts, reports, approvals</p></div><button class="btn btn-sm btn-ghost" onclick="connectIntegration(this,'Teams')">Connect</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h3>Point of Sale</h3></div>
+    <div class="card-body">
+      <div class="int-grid-3">
+        <div class="conn-card" onclick="connectPOS(this,'Toast')"><div style="font-size:18px;opacity:0.4;">&#9634;</div><h4>Toast</h4><p>POS + payroll data</p></div>
+        <div class="conn-card" onclick="connectPOS(this,'Square')"><div style="font-size:18px;opacity:0.4;">&#9634;</div><h4>Square</h4><p>POS + payments</p></div>
+        <div class="conn-card" onclick="connectPOS(this,'Aloha')"><div style="font-size:18px;opacity:0.4;">&#9634;</div><h4>Aloha</h4><p>NCR POS integration</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h3>Accounting & Finance</h3></div>
+    <div class="card-body">
+      <div class="int-grid">
+        <div class="int-card"><div class="int-card-info"><h4>QuickBooks</h4><p>Expense tracking, GL sync</p></div><button class="btn btn-sm btn-ghost" onclick="connectIntegration(this,'QuickBooks')">Connect</button></div>
+        <div class="int-card"><div class="int-card-info"><h4>Xero</h4><p>Accounting, invoicing</p></div><button class="btn btn-sm btn-ghost" onclick="connectIntegration(this,'Xero')">Connect</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h3>Other Connectors</h3></div>
+    <div class="card-body">
+      <div class="int-grid-3">
+        <div class="conn-card" onclick="connectPOS(this,'CRM')"><div style="font-size:18px;opacity:0.4;">&#9634;</div><h4>CRM</h4><p>Salesforce, HubSpot</p></div>
+        <div class="conn-card" onclick="connectPOS(this,'Loyalty')"><div style="font-size:18px;opacity:0.4;">&#9634;</div><h4>Loyalty</h4><p>Punchh, LevelUp</p></div>
+        <div class="conn-card" onclick="connectPOS(this,'Inventory')"><div style="font-size:18px;opacity:0.4;">&#9634;</div><h4>Inventory</h4><p>MarginEdge, BlueCart</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;justify-content:space-between;margin-top:20px;">
+    <div style="display:flex;gap:12px;align-items:center;">
+      <button class="btn-link">Skip &mdash; I'll connect later</button>
+    </div>
+    <button class="btn btn-primary" onclick="completeTechnology()">Complete Technology Setup &rarr;</button>
+  </div>
+
+  <!-- TECH COMPLETE (hidden until done) -->
+  <div id="tech-complete" style="display:none;margin-top:24px;">
+    <div class="complete-wrap">
+      <div class="complete-icon">&#10003;</div>
+      <h1>All Set!</h1>
+      <p>Access, Business, Billing, and Technology are all configured. Every Loop module has what it needs.</p>
+      <div class="module-cards">
+        <div class="mod-card ready"><h4><span class="sd green"></span>TruROI+</h4><p>Ready. Setup link sent.</p></div>
+        <div class="mod-card ready"><h4><span class="sd green"></span>Balance</h4><p>Ready. Calendar + costs configured.</p></div>
+        <div class="mod-card"><h4><span class="sd orange"></span>Protect</h4><p>Request submitted to CSM.</p></div>
+        <div class="mod-card" style="opacity:0.45;"><h4>Ops</h4><p>Not in your current plan.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<script>
+// ===== MODULE SWITCHING =====
+function showModule(mod) {
+  document.querySelectorAll('.module-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('mod-' + mod).classList.add('active');
+  document.querySelectorAll('.mod-tab').forEach(t => t.classList.remove('active'));
+  const tabs = document.querySelectorAll('.mod-tab');
+  const map = {access:0, business:1, billing:2, technology:3};
+  tabs[map[mod]].classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ===== BUSINESS STEP NAV =====
+const bizStepData = {
+  biz1:{num:1,label:'Verify'},biz2:{num:2,label:'Locations'},biz3:{num:3,label:'Calendar'},
+  biz4:{num:4,label:'People'},biz5:{num:5,label:'Costs'},biz6:{num:6,label:'Brand'}
+};
+
+function bizGoTo(id,n) { showBizStep(id); }
+
+function showBizStep(id) {
+  document.querySelectorAll('#mod-business .step-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const dots = document.querySelectorAll('#biz-progress .sp-item');
+  const d = bizStepData[id];
+  if (d) {
+    dots.forEach((dot,i) => {
+      dot.classList.remove('active','done');
+      if (i < d.num - 1) dot.classList.add('done');
+      if (i === d.num - 1) dot.classList.add('active');
+    });
+  }
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function completeBusiness() {
+  document.querySelectorAll('#mod-business .step-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('biz-complete').classList.add('active');
+  document.querySelectorAll('#biz-progress .sp-item').forEach(d => { d.classList.remove('active'); d.classList.add('done'); });
+  document.getElementById('badge-business').textContent = 'Complete';
+  document.getElementById('badge-business').className = 'mt-badge done';
+  document.getElementById('badge-billing').textContent = 'In Progress';
+  document.getElementById('badge-billing').className = 'mt-badge active';
+  updateOverallProgress(2);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ===== BILLING TAB NAV =====
+function showBillingTab(id) {
+  document.querySelectorAll('#mod-billing .step-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('#billing-tabs .inner-tab').forEach(t => t.classList.remove('active'));
+  const map = {'bill-overview':0,'bill-myloop':1,'bill-groups':2};
+  document.querySelectorAll('#billing-tabs .inner-tab')[map[id]].classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function completeBilling() {
+  document.querySelectorAll('#mod-billing .step-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('bill-complete').classList.add('active');
+  document.getElementById('badge-billing').textContent = 'Complete';
+  document.getElementById('badge-billing').className = 'mt-badge done';
+  document.getElementById('badge-technology').textContent = 'In Progress';
+  document.getElementById('badge-technology').className = 'mt-badge active';
+  updateOverallProgress(3);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ===== TECHNOLOGY =====
+function completeTechnology() {
+  document.getElementById('tech-complete').style.display = 'block';
+  document.getElementById('badge-technology').textContent = 'Complete';
+  document.getElementById('badge-technology').className = 'mt-badge done';
+  updateOverallProgress(4);
+  window.scrollTo({top:document.getElementById('tech-complete').offsetTop - 100,behavior:'smooth'});
+}
+
+function connectIntegration(btn, name) {
+  btn.textContent = 'Connected';
+  btn.className = 'btn btn-sm btn-ghost';
+  btn.style.color = 'var(--green-text)';
+  btn.style.borderColor = 'var(--green)';
+  btn.disabled = true;
+}
+
+function connectPOS(card, name) {
+  card.style.borderColor = 'var(--green)';
+  card.style.background = 'var(--green-soft)';
+  card.querySelector('h4').style.color = 'var(--green-text)';
+  card.querySelector('p').textContent = 'Connected';
+}
+
+// ===== OVERALL PROGRESS =====
+function updateOverallProgress(completed) {
+  const pcts = {1:25, 2:50, 3:75, 4:100};
+  const times = {1:'~18 min remaining', 2:'~10 min remaining', 3:'~5 min remaining', 4:'Done!'};
+  const labels = {1:'1 of 4 modules', 2:'2 of 4 modules', 3:'3 of 4 modules', 4:'4 of 4 modules'};
+  document.getElementById('op-fill').style.width = pcts[completed] + '%';
+  document.getElementById('op-time').textContent = times[completed];
+  document.getElementById('op-label').textContent = labels[completed];
+  const mods = document.querySelectorAll('.op-mod');
+  const dots = document.querySelectorAll('.op-mod-dot');
+  mods.forEach((m,i) => { m.classList.remove('active','done'); });
+  for (let i = 0; i < completed; i++) { mods[i].classList.add('done'); dots[i].className = 'op-mod-dot done'; }
+  if (completed < 4) { mods[completed].classList.add('active'); dots[completed].className = 'op-mod-dot active'; }
+}
+
+// ===== BILLING GROUP EDIT =====
+function toggleEditGroup(id) {
+  const view = document.getElementById('bg-' + id + '-view');
+  const edit = document.getElementById('bg-' + id + '-edit');
+  const footer = document.getElementById('bg-' + id + '-footer');
+  if (edit.style.display === 'none') {
+    view.style.display = 'none';
+    edit.style.display = 'grid';
+    footer.style.display = 'flex';
+  } else {
+    view.style.display = 'grid';
+    edit.style.display = 'none';
+    footer.style.display = 'none';
+  }
+}
+
+function saveGroup(id) {
+  toggleEditGroup(id);
+  // show brief save confirmation
+  const card = document.getElementById('bg-' + id);
+  card.style.borderColor = 'var(--green)';
+  setTimeout(() => { card.style.borderColor = 'var(--border)'; }, 2000);
+}
+
+function addBillingGroup() {
+  const container = document.getElementById('bill-groups').querySelector('.why-banner').parentElement;
+  const id = Date.now();
+  const card = document.createElement('div');
+  card.className = 'bg-card';
+  card.innerHTML = `
+    <div class="bg-header"><h3>New Billing Group <span class="tag tag-orange" style="margin-left:8px;">Draft</span></h3></div>
+    <div class="bg-body">
+      <div class="bg-grid">
+        <div class="fg"><label class="fl">Group Name <span style="color:var(--red);">*</span></label><input class="fi" placeholder="e.g. Southeast Region"></div>
+        <div class="fg"><label class="fl">Number of Locations</label><input class="fi" type="number" placeholder="0"></div>
+        <div class="fg"><label class="fl">Account Manager <span style="color:var(--red);">*</span></label><input class="fi" placeholder="Full name"></div>
+        <div class="fg"><label class="fl">Email <span style="color:var(--red);">*</span></label><input class="fi" placeholder="email@company.com"></div>
+        <div class="fg"><label class="fl">Phone</label><input class="fi" placeholder="(555) 000-0000"></div>
+        <div class="fg"><label class="fl">Payment Method</label><select class="fi"><option>Visa ****4242</option><option>ACH / Bank Transfer</option><option>+ Add new payment method</option></select></div>
+      </div>
+    </div>
+    <div class="bg-footer" style="display:flex;"><span style="font-size:11px;color:var(--text-light);">New group will appear on next invoice</span><button class="btn btn-sm btn-primary" onclick="this.closest('.bg-card').querySelector('.tag').className='tag tag-green';this.closest('.bg-card').querySelector('.tag').textContent='Active';this.closest('.bg-footer').style.display='none';">Save Group</button></div>
+  `;
+  // Insert before the add button
+  const addBtn = container.querySelector('[onclick="addBillingGroup()"]');
+  addBtn.parentElement.insertBefore(card, addBtn);
+  card.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function requestEnable(product) {
+  alert('Request submitted! Your CSM will reach out within 24 hours to enable ' + product + '.');
+}
+
+// ===== LOCATION TAB SWITCHING =====
+function switchLocTab(tab) {
+  const tabs = document.querySelectorAll('#biz2 .inner-tab');
+  tabs.forEach(t => t.classList.remove('active'));
+  if (tab === 'inline') { tabs[0].classList.add('active'); document.getElementById('loc-inline').style.display=''; document.getElementById('loc-bulk').style.display='none'; }
+  else { tabs[1].classList.add('active'); document.getElementById('loc-inline').style.display='none'; document.getElementById('loc-bulk').style.display=''; }
+}
+
+// ===== CSV UPLOAD =====
+function handleCSVUpload(input) {
+  if (input.files && input.files[0]) {
+    document.getElementById('csv-upload-status').style.display='block';
+    document.getElementById('csv-upload-status').innerHTML='<strong>'+input.files[0].name+'</strong> uploaded. Locations merged.';
+  }
+}
+
+function downloadCSVTemplate() {
+  const csv = "Store#,Brand,Ownership,Region,FranchiseeGroup,OpenDate\n101,Dave's Hot Chicken,Franchisee,Florida,Tampa Bay,2024-03-15";
+  const blob = new Blob([csv],{type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = 'loop-locations-template.csv'; a.click();
+}
+
+function applyOwnershipToAll() { document.querySelectorAll('.loc-ownership').forEach(s => s.value = 'Franchisee'); }
+function fillRegionFromFirst() { const r = document.querySelectorAll('.loc-region'); if(r.length) { const v=r[0].value; r.forEach(x => {if(!x.value)x.value=v;}); } }
+
+// ===== ADD BRAND =====
+function addBrandRow() {
+  const tbody = document.getElementById('brands-tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = '<td><input class="fi" style="width:140px;" placeholder="Brand name"></td><td><select class="fi" style="width:80px;"><option selected>Real</option><option>Virtual</option></select></td><td><select class="fi" style="width:125px;"><option>Franchisee</option><option>Franchisor</option><option>Fully Owned</option><option>CPA</option></select></td><td><input class="fi" style="width:155px;" placeholder="Corporate entity"></td><td><input class="fi" style="width:50px;" placeholder="#"></td>';
+  tbody.appendChild(tr);
+}
+
+// ===== ADD PERSON =====
+function addPersonRow() {
+  const tbody = document.getElementById('people-tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = '<td><input class="fi" placeholder="Full name"></td><td><input class="fi" placeholder="email@company.com"></td><td><select class="fi" style="width:115px;"><option>Owner</option><option>Marketing</option><option>Operations</option><option>Finance</option><option>Store Manager</option></select></td><td><span class="tag">All</span></td><td style="text-align:center;"><input type="checkbox"></td><td style="text-align:center;"><input type="checkbox"></td>';
+  tbody.appendChild(tr);
+  tr.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function handlePeopleCSV(input) {
+  if (input.files && input.files[0]) {
+    const tbody = document.getElementById('people-tbody');
+    [{name:'James Park',email:'james@example.com',role:'Operations'},{name:'Lisa Tran',email:'lisa@example.com',role:'Finance'}].forEach(p => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<td><input class="fi" value="'+p.name+'"></td><td><input class="fi" value="'+p.email+'"></td><td><select class="fi" style="width:115px;"><option'+(p.role==='Owner'?' selected':'')+'>Owner</option><option'+(p.role==='Marketing'?' selected':'')+'>Marketing</option><option'+(p.role==='Operations'?' selected':'')+'>Operations</option><option'+(p.role==='Finance'?' selected':'')+'>Finance</option></select></td><td><span class="tag">All</span></td><td style="text-align:center;"><input type="checkbox" checked></td><td style="text-align:center;"><input type="checkbox"></td>';
+      tr.style.animation='fadeIn 0.3s ease';
+      tbody.appendChild(tr);
+    });
+  }
+}
+
+// ===== LOGO / TEMPLATE UPLOAD =====
+function handleLogoUpload(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = function(e) { document.getElementById('logo-preview').innerHTML = '<img src="'+e.target.result+'" style="max-width:72px;max-height:72px;border-radius:12px;border:2px solid var(--border);">'; };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+function handleTemplateUpload(input) {
+  if (input.files && input.files[0]) {
+    document.getElementById('template-status').innerHTML = '<div style="font-size:13px;color:var(--green-text);font-weight:600;">'+input.files[0].name+'</div><div style="font-size:11px;color:var(--text-light);margin-top:3px;">Uploaded. Click to replace.</div>';
+  }
+}
+
+// ===== BRAND PILL SWITCHING =====
+document.addEventListener('click', function(e) {
+  if (e.target.classList.contains('brand-pill')) {
+    const parent = e.target.closest('.brand-pills');
+    if (parent) { parent.querySelectorAll('.brand-pill').forEach(p => p.classList.remove('active')); e.target.classList.add('active'); }
+  }
+});
+</script>
+
+</body>
+</html>

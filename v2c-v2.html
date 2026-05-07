@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loop — Onboarding Agent</title>
+<style>
+  :root {
+    --bg: #f7f8fa;
+    --white: #ffffff;
+    --text: #1a1a2e;
+    --text-sec: #5a5d7a;
+    --text-light: #9496ad;
+    --border: #e8eaef;
+    --border-focus: #7c6cf0;
+    --accent: #6c5ce7;
+    --accent-soft: #f0eeff;
+    --accent-text: #5b4cdb;
+    --green: #10b981;
+    --green-soft: #ecfdf5;
+    --green-text: #059669;
+    --orange: #f59e0b;
+    --orange-soft: #fffbeb;
+    --orange-text: #d97706;
+    --blue: #3b82f6;
+    --blue-soft: #eff6ff;
+    --teal: #00bfa6;
+    --teal-soft: #e6faf7;
+    --teal-text: #00917c;
+    --red: #ef4444;
+    --r: 16px;
+    --rs: 10px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.06);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:var(--bg); color:var(--text); line-height:1.6; -webkit-font-smoothing:antialiased; height:100vh; overflow:hidden; }
+
+  /* ===== LAYOUT ===== */
+  .layout { display:grid; grid-template-columns:300px 1fr; height:100vh; }
+
+  /* ===== SIDEBAR ===== */
+  .sidebar { background:var(--white); border-right:1px solid var(--border); display:flex; flex-direction:column; overflow-y:auto; }
+  .sidebar-header { padding:18px 20px 14px; border-bottom:1px solid var(--border); }
+  .sidebar-logo { font-size:17px; font-weight:800; color:var(--accent); letter-spacing:-0.5px; }
+  .sidebar-subtitle { font-size:12px; color:var(--text-light); margin-top:2px; }
+
+  .sidebar-progress { padding:16px 20px; border-bottom:1px solid var(--border); }
+  .sp-label { font-size:12px; color:var(--text-sec); margin-bottom:6px; display:flex; justify-content:space-between; }
+  .sp-bar { height:5px; background:var(--border); border-radius:3px; overflow:hidden; }
+  .sp-fill { height:100%; background:linear-gradient(90deg,var(--accent),#a78bfa); border-radius:3px; transition:width 0.6s ease; }
+  .sp-time { font-size:11px; color:var(--text-light); margin-top:6px; display:flex; align-items:center; gap:5px; }
+
+  /* Module groups in sidebar */
+  .sb-module { border-bottom:1px solid var(--border); }
+  .sb-mod-header { padding:10px 20px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:var(--text-light); display:flex; align-items:center; justify-content:space-between; }
+  .sb-mod-badge { font-size:9px; padding:2px 7px; border-radius:8px; font-weight:600; }
+  .sb-mod-badge.done { background:var(--green-soft); color:var(--green-text); }
+  .sb-mod-badge.active { background:var(--accent-soft); color:var(--accent-text); }
+  .sb-mod-badge.pending { background:var(--orange-soft); color:var(--orange-text); }
+
+  .sb-step { display:flex; align-items:center; gap:10px; padding:8px 20px 8px 32px; cursor:pointer; transition:background 0.15s; font-size:12px; color:var(--text-light); }
+  .sb-step:hover { background:var(--bg); }
+  .sb-step.active { color:var(--accent-text); font-weight:600; background:var(--accent-soft); }
+  .sb-step.done { color:var(--green-text); }
+  .sb-step-dot { width:18px; height:18px; border-radius:50%; border:2px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; flex-shrink:0; transition:all 0.2s; }
+  .sb-step.active .sb-step-dot { border-color:var(--accent); background:var(--accent); color:white; }
+  .sb-step.done .sb-step-dot { border-color:var(--green); background:var(--green); color:white; }
+
+  .sidebar-footer { padding:14px 20px; border-top:1px solid var(--border); font-size:11px; color:var(--text-light); margin-top:auto; }
+  .sidebar-footer a { color:var(--accent-text); text-decoration:none; }
+
+  /* ===== CHAT AREA ===== */
+  .chat-area { display:flex; flex-direction:column; height:100vh; background:var(--bg); }
+  .chat-header { background:var(--white); border-bottom:1px solid var(--border); padding:12px 28px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+  .ch-left { display:flex; align-items:center; gap:12px; }
+  .ch-avatar { width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,var(--accent),#a78bfa); display:flex; align-items:center; justify-content:center; color:white; font-weight:800; font-size:13px; }
+  .ch-name { font-size:14px; font-weight:600; }
+  .ch-status { font-size:11px; color:var(--green-text); display:flex; align-items:center; gap:4px; }
+  .ch-status-dot { width:6px; height:6px; border-radius:50%; background:var(--green); }
+  .ch-save { font-size:12px; color:var(--green-text); display:flex; align-items:center; gap:5px; }
+  .ch-save-dot { width:6px; height:6px; border-radius:50%; background:var(--green); }
+
+  /* ===== MESSAGES ===== */
+  .chat-messages { flex:1; overflow-y:auto; padding:20px 28px; display:flex; flex-direction:column; gap:4px; scroll-behavior:smooth; }
+  .msg-group { display:flex; flex-direction:column; gap:4px; margin-bottom:10px; }
+  .msg-group.agent { align-items:flex-start; }
+  .msg-group.user { align-items:flex-end; }
+  .msg { max-width:560px; padding:11px 15px; border-radius:16px; font-size:13px; line-height:1.6; animation:msgIn 0.3s ease; }
+  @keyframes msgIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  .msg.agent { background:var(--white); border:1px solid var(--border); border-radius:16px 16px 16px 4px; }
+  .msg.user { background:var(--accent); color:white; border-radius:16px 16px 4px 16px; }
+  .msg strong { font-weight:600; }
+
+  /* Module divider in chat */
+  .msg-divider { display:flex; align-items:center; gap:12px; margin:16px 0 8px; animation:msgIn 0.3s ease; }
+  .msg-divider-line { flex:1; height:1px; background:var(--border); }
+  .msg-divider-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:var(--text-light); padding:4px 12px; background:var(--white); border:1px solid var(--border); border-radius:20px; }
+
+  /* ===== RICH CARDS ===== */
+  .msg-card { max-width:560px; background:var(--white); border:1px solid var(--border); border-radius:var(--r); overflow:hidden; animation:msgIn 0.3s ease; box-shadow:var(--shadow-sm); }
+  .mc-header { padding:11px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .mc-header h4 { font-size:13px; font-weight:600; }
+  .mc-tag { font-size:10px; padding:2px 8px; border-radius:4px; font-weight:600; }
+  .mc-tag.prefill { background:var(--green-soft); color:var(--green-text); }
+  .mc-tag.info { background:var(--blue-soft); color:var(--blue); }
+  .mc-tag.teal { background:var(--teal-soft); color:var(--teal-text); }
+  .mc-tag.orange { background:var(--orange-soft); color:var(--orange-text); }
+  .mc-body { padding:14px 16px; }
+  .mc-footer { padding:10px 16px; border-top:1px solid var(--border); background:var(--bg); display:flex; gap:8px; flex-wrap:wrap; }
+
+  .mc-table { width:100%; border-collapse:collapse; font-size:12px; }
+  .mc-table th { text-align:left; font-size:10px; text-transform:uppercase; letter-spacing:0.4px; color:var(--text-light); font-weight:600; padding:5px 0; border-bottom:1px solid var(--border); }
+  .mc-table td { padding:7px 0; border-bottom:1px solid var(--border); vertical-align:middle; }
+  .mc-table tr:last-child td { border:none; }
+
+  .mc-form-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .mc-fg { display:flex; flex-direction:column; gap:3px; }
+  .mc-fg.full { grid-column:1/-1; }
+  .mc-fl { font-size:11px; font-weight:600; color:var(--text-sec); }
+
+  .fi { padding:7px 11px; background:var(--white); border:1.5px solid var(--border); border-radius:8px; color:var(--text); font-size:12px; transition:border-color 0.15s; font-family:inherit; }
+  .fi:focus { outline:none; border-color:var(--border-focus); box-shadow:0 0 0 3px var(--accent-soft); }
+  .fi.prefilled { border-color:rgba(16,185,129,0.35); background:rgba(16,185,129,0.03); }
+  select.fi { appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239496ad'%3E%3Cpath d='M2 4l4 4 4-4'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 10px center; padding-right:26px; cursor:pointer; }
+
+  .tag { display:inline-flex; align-items:center; padding:2px 8px; border-radius:5px; font-size:10px; font-weight:500; background:var(--bg); border:1px solid var(--border); color:var(--text-sec); }
+  .tag-green { background:var(--green-soft); color:var(--green-text); border-color:rgba(16,185,129,0.2); }
+  .tag-orange { background:var(--orange-soft); color:var(--orange-text); border-color:rgba(245,158,11,0.2); }
+  .tag-teal { background:var(--teal-soft); color:var(--teal-text); border-color:rgba(0,191,166,0.2); }
+
+  .toggle-row { display:flex; align-items:center; justify-content:space-between; padding:6px 0; }
+  .toggle-label { font-size:11px; color:var(--text-sec); }
+  .toggle { width:34px; height:18px; background:var(--border); border-radius:9px; position:relative; cursor:pointer; transition:background 0.2s; flex-shrink:0; }
+  .toggle.on { background:var(--accent); }
+  .toggle::after { content:''; position:absolute; width:12px; height:12px; border-radius:50%; background:white; top:3px; left:3px; transition:transform 0.2s; box-shadow:0 1px 2px rgba(0,0,0,0.15); }
+  .toggle.on::after { transform:translateX(16px); }
+
+  .mc-upload { border:2px dashed var(--border); border-radius:8px; padding:16px; text-align:center; cursor:pointer; transition:border-color 0.15s; background:var(--bg); }
+  .mc-upload:hover { border-color:var(--accent); background:var(--accent-soft); }
+
+  .mc-banner { padding:9px 12px; border-radius:8px; font-size:11px; display:flex; gap:7px; align-items:flex-start; margin-bottom:10px; }
+  .mc-banner.prefill { background:var(--green-soft); color:var(--green-text); border:1px solid rgba(16,185,129,0.15); }
+  .mc-banner.info { background:var(--accent-soft); color:var(--accent-text); border:1px solid rgba(108,92,231,0.12); }
+
+  .mc-summary { display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:var(--bg); border:1px solid var(--border); border-radius:8px; margin-top:8px; }
+  .mc-summary .label { font-size:11px; font-weight:600; color:var(--text-sec); }
+  .mc-summary .value { font-size:14px; font-weight:700; color:var(--accent); }
+
+  /* Billing stats in chat */
+  .mc-stats { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .mc-stat { background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:10px 12px; }
+  .mc-stat-label { font-size:10px; color:var(--text-light); font-weight:600; text-transform:uppercase; letter-spacing:0.3px; }
+  .mc-stat-value { font-size:17px; font-weight:700; color:var(--text); margin-top:2px; }
+  .mc-stat-sub { font-size:10px; color:var(--text-light); }
+
+  /* Product cards in chat */
+  .mc-product-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .mc-product { border:1.5px solid var(--border); border-radius:10px; padding:12px; transition:border-color 0.15s; }
+  .mc-product.active-p { border-color:var(--teal); }
+  .mc-product.fomo-p { background:var(--bg); }
+  .mc-product h5 { font-size:12px; font-weight:600; display:flex; align-items:center; justify-content:space-between; }
+  .mc-product .pp { font-size:11px; color:var(--text-sec); margin-top:3px; }
+  .mc-product .pp strong { color:var(--text); }
+  .mc-product .fomo-stat { font-size:10px; color:var(--accent-text); background:var(--accent-soft); padding:6px 8px; border-radius:6px; margin-top:6px; }
+  .mc-product-actions { display:flex; gap:6px; margin-top:8px; }
+
+  /* Billing group in chat */
+  .mc-bg { border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:8px; }
+  .mc-bg h5 { font-size:13px; font-weight:600; display:flex; align-items:center; gap:6px; margin-bottom:8px; }
+  .mc-bg-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:12px; }
+  .mc-bg-field .lbl { font-size:10px; color:var(--text-light); font-weight:600; text-transform:uppercase; letter-spacing:0.3px; }
+  .mc-bg-field .val { color:var(--text); margin-top:1px; }
+
+  /* Integration cards in chat */
+  .mc-int-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .mc-int-card { display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border:1.5px solid var(--border); border-radius:8px; transition:border-color 0.15s; }
+  .mc-int-card:hover { border-color:var(--accent); }
+  .mc-int-card h5 { font-size:12px; font-weight:600; }
+  .mc-int-card p { font-size:10px; color:var(--text-light); }
+  .mc-conn-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+  .mc-conn-card { padding:12px 8px; border:1.5px solid var(--border); border-radius:8px; text-align:center; cursor:pointer; transition:all 0.15s; }
+  .mc-conn-card:hover { border-color:var(--accent); background:var(--accent-soft); }
+  .mc-conn-card h5 { font-size:11px; font-weight:600; margin:3px 0 1px; }
+  .mc-conn-card p { font-size:10px; color:var(--text-light); }
+
+  /* Completion modules */
+  .mc-modules { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .mc-mod { padding:12px; border:1.5px solid var(--border); border-radius:10px; transition:all 0.15s; }
+  .mc-mod.ready { border-color:var(--green); }
+  .mc-mod h5 { font-size:12px; font-weight:600; }
+  .mc-mod.ready h5 { color:var(--green-text); }
+  .mc-mod p { font-size:10px; color:var(--text-light); }
+  .sd { width:7px; height:7px; border-radius:50%; display:inline-block; margin-right:3px; }
+  .sd.green { background:var(--green); }
+  .sd.orange { background:var(--orange); }
+
+  /* Swatch */
+  .swatch-row { display:flex; gap:10px; }
+  .swatch { display:flex; flex-direction:column; align-items:center; gap:2px; }
+  .swatch-circle { width:32px; height:32px; border-radius:8px; border:2px solid var(--border); cursor:pointer; }
+  .swatch span { font-size:9px; color:var(--text-light); }
+
+  /* ===== QUICK REPLIES ===== */
+  .quick-replies { display:flex; flex-wrap:wrap; gap:6px; max-width:560px; animation:msgIn 0.3s ease; margin-bottom:8px; }
+  .qr-btn { padding:7px 14px; border:1.5px solid var(--border); border-radius:20px; background:var(--white); color:var(--text-sec); font-size:12px; font-weight:500; cursor:pointer; transition:all 0.15s; font-family:inherit; }
+  .qr-btn:hover { border-color:var(--accent); color:var(--accent-text); background:var(--accent-soft); }
+  .qr-btn.primary { border-color:var(--accent); color:var(--accent-text); background:var(--accent-soft); }
+
+  /* Typing */
+  .typing-indicator { display:flex; align-items:center; gap:4px; padding:11px 15px; background:var(--white); border:1px solid var(--border); border-radius:16px 16px 16px 4px; max-width:70px; animation:msgIn 0.3s ease; }
+  .typing-dot { width:6px; height:6px; border-radius:50%; background:var(--text-light); animation:typingBounce 1.4s ease-in-out infinite; }
+  .typing-dot:nth-child(2) { animation-delay:0.2s; }
+  .typing-dot:nth-child(3) { animation-delay:0.4s; }
+  @keyframes typingBounce { 0%,60%,100%{transform:translateY(0);opacity:0.4} 30%{transform:translateY(-4px);opacity:1} }
+
+  /* Buttons */
+  .btn { padding:6px 14px; border-radius:8px; font-size:11px; font-weight:600; cursor:pointer; border:none; transition:all 0.15s; font-family:inherit; }
+  .btn-primary { background:var(--accent); color:white; }
+  .btn-primary:hover { background:#5b4cdb; }
+  .btn-teal { background:var(--teal); color:white; }
+  .btn-teal:hover { background:#00917c; }
+  .btn-ghost { background:var(--white); color:var(--text-sec); border:1.5px solid var(--border); }
+  .btn-sm { padding:5px 10px; font-size:10px; }
+  .btn-link { background:none; border:none; color:var(--accent-text); font-size:11px; cursor:pointer; font-weight:500; font-family:inherit; }
+
+  /* ===== INPUT BAR ===== */
+  .chat-input-bar { padding:14px 28px 18px; background:var(--white); border-top:1px solid var(--border); flex-shrink:0; }
+  .input-wrap { display:flex; align-items:center; gap:10px; background:var(--bg); border:1.5px solid var(--border); border-radius:14px; padding:5px 7px 5px 14px; transition:border-color 0.15s; }
+  .input-wrap:focus-within { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+  .input-wrap input { flex:1; border:none; background:transparent; font-size:13px; color:var(--text); font-family:inherit; outline:none; }
+  .input-wrap input::placeholder { color:var(--text-light); }
+  .send-btn { width:34px; height:34px; border-radius:10px; background:var(--accent); border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.15s; flex-shrink:0; }
+  .send-btn:hover { background:#5b4cdb; }
+  .send-btn svg { width:15px; height:15px; }
+  .input-hint { font-size:10px; color:var(--text-light); margin-top:5px; text-align:center; }
+
+  @media (max-width:800px) {
+    .layout { grid-template-columns:1fr; }
+    .sidebar { display:none; }
+    .mc-form-grid,.mc-stats,.mc-product-grid,.mc-int-grid,.mc-bg-grid,.mc-modules { grid-template-columns:1fr; }
+    .mc-conn-grid { grid-template-columns:1fr 1fr; }
+    .msg,.msg-card,.quick-replies { max-width:92%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ===== SIDEBAR ===== -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">Loop</div>
+      <div class="sidebar-subtitle">Onboarding Agent</div>
+    </div>
+    <div class="sidebar-progress">
+      <div class="sp-label"><span id="sp-step-label">Module 1 of 4</span><span id="sp-pct">10%</span></div>
+      <div class="sp-bar"><div class="sp-fill" id="sp-fill" style="width:10%"></div></div>
+      <div class="sp-time" id="sp-time"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~20 min remaining</div>
+    </div>
+
+    <div class="sb-module" id="sb-mod-access">
+      <div class="sb-mod-header">Access <span class="sb-mod-badge done" id="sbadge-access">Complete</span></div>
+      <div class="sb-step done" data-step="access"><div class="sb-step-dot">&#10003;</div><span>Platform Connections</span></div>
+    </div>
+
+    <div class="sb-module" id="sb-mod-business">
+      <div class="sb-mod-header">Business <span class="sb-mod-badge active" id="sbadge-business">In Progress</span></div>
+      <div class="sb-step active" data-step="biz1" onclick="jumpTo('biz1')"><div class="sb-step-dot">1</div><span>Verify Business</span></div>
+      <div class="sb-step" data-step="biz2" onclick="jumpTo('biz2')"><div class="sb-step-dot">2</div><span>Locations & Regions</span></div>
+      <div class="sb-step" data-step="biz3" onclick="jumpTo('biz3')"><div class="sb-step-dot">3</div><span>Calendar & Comp</span></div>
+      <div class="sb-step" data-step="biz4" onclick="jumpTo('biz4')"><div class="sb-step-dot">4</div><span>People & Decisions</span></div>
+      <div class="sb-step" data-step="biz5" onclick="jumpTo('biz5')"><div class="sb-step-dot">5</div><span>Cost Structure</span></div>
+      <div class="sb-step" data-step="biz6" onclick="jumpTo('biz6')"><div class="sb-step-dot">6</div><span>Brand Identity</span></div>
+    </div>
+
+    <div class="sb-module" id="sb-mod-billing">
+      <div class="sb-mod-header">Billing <span class="sb-mod-badge pending" id="sbadge-billing">Pending</span></div>
+      <div class="sb-step" data-step="bill1" onclick="jumpTo('bill1')"><div class="sb-step-dot">1</div><span>Overview & Contract</span></div>
+      <div class="sb-step" data-step="bill2" onclick="jumpTo('bill2')"><div class="sb-step-dot">2</div><span>My Loop Products</span></div>
+      <div class="sb-step" data-step="bill3" onclick="jumpTo('bill3')"><div class="sb-step-dot">3</div><span>Billing Groups</span></div>
+    </div>
+
+    <div class="sb-module" id="sb-mod-technology">
+      <div class="sb-mod-header">Technology <span class="sb-mod-badge pending" id="sbadge-technology">Pending</span></div>
+      <div class="sb-step" data-step="tech1" onclick="jumpTo('tech1')"><div class="sb-step-dot">1</div><span>Integrations</span></div>
+    </div>
+
+    <div class="sidebar-footer">All changes auto-saved<br><a href="#">Need help? Talk to us</a></div>
+  </div>
+
+  <!-- ===== CHAT ===== -->
+  <div class="chat-area">
+    <div class="chat-header">
+      <div class="ch-left">
+        <div class="ch-avatar">L</div>
+        <div><div class="ch-name">Loop Onboarding Agent</div><div class="ch-status"><div class="ch-status-dot"></div>Online</div></div>
+      </div>
+      <div class="ch-save"><div class="ch-save-dot"></div>Auto-saved</div>
+    </div>
+
+    <div class="chat-messages" id="chat-messages"></div>
+
+    <div class="chat-input-bar">
+      <div class="input-wrap">
+        <input type="text" id="user-input" placeholder="Type a message or use the buttons above..." onkeydown="if(event.key==='Enter')sendUserMessage()">
+        <button class="send-btn" onclick="sendUserMessage()"><svg fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg></button>
+      </div>
+      <div class="input-hint">Press Enter to send. The agent guides you through each module.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const chatEl = document.getElementById('chat-messages');
+let currentStep = 'welcome';
+
+// ===== SIDEBAR =====
+function updateSB(step) {
+  document.querySelectorAll('.sb-step').forEach(el => {
+    el.classList.remove('active','done');
+  });
+  // Mark done steps
+  const order = ['access','biz1','biz2','biz3','biz4','biz5','biz6','bill1','bill2','bill3','tech1','complete'];
+  const idx = order.indexOf(step);
+  order.forEach((s,i) => {
+    const el = document.querySelector(`.sb-step[data-step="${s}"]`);
+    if (!el) return;
+    if (i < idx) el.classList.add('done');
+    if (i === idx) el.classList.add('active');
+  });
+  // Progress
+  const pct = Math.round(((idx+1) / order.length) * 100);
+  document.getElementById('sp-fill').style.width = pct + '%';
+  document.getElementById('sp-pct').textContent = pct + '%';
+  // Module badges
+  if (idx >= 1) { document.getElementById('sbadge-business').className='sb-mod-badge active'; document.getElementById('sbadge-business').textContent='In Progress'; }
+  if (idx >= 7) { document.getElementById('sbadge-business').className='sb-mod-badge done'; document.getElementById('sbadge-business').textContent='Complete'; document.getElementById('sbadge-billing').className='sb-mod-badge active'; document.getElementById('sbadge-billing').textContent='In Progress'; }
+  if (idx >= 10) { document.getElementById('sbadge-billing').className='sb-mod-badge done'; document.getElementById('sbadge-billing').textContent='Complete'; document.getElementById('sbadge-technology').className='sb-mod-badge active'; document.getElementById('sbadge-technology').textContent='In Progress'; }
+  if (idx >= 11) { document.getElementById('sbadge-technology').className='sb-mod-badge done'; document.getElementById('sbadge-technology').textContent='Complete'; }
+  const remaining = Math.max(0, 20 - Math.round(idx * 1.8));
+  document.getElementById('sp-time').innerHTML = idx >= 11 ? 'All done!' : `<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~${remaining} min remaining`;
+  document.getElementById('sp-step-label').textContent = idx >= 11 ? 'Complete' : `Step ${idx+1} of ${order.length-1}`;
+}
+
+// ===== MESSAGE HELPERS =====
+function addAgent(text, d) { return new Promise(r => setTimeout(() => { const g=document.createElement('div'); g.className='msg-group agent'; g.innerHTML=`<div class="msg agent">${text}</div>`; chatEl.appendChild(g); scroll(); r(); }, d||0)); }
+function addCard(html, d) { return new Promise(r => setTimeout(() => { const g=document.createElement('div'); g.className='msg-group agent'; g.innerHTML=`<div class="msg-card">${html}</div>`; chatEl.appendChild(g); scroll(); r(); }, d||0)); }
+function addDivider(label, d) { return new Promise(r => setTimeout(() => { const g=document.createElement('div'); g.className='msg-divider'; g.innerHTML=`<div class="msg-divider-line"></div><div class="msg-divider-label">${label}</div><div class="msg-divider-line"></div>`; chatEl.appendChild(g); scroll(); r(); }, d||0)); }
+function addQR(buttons, d) { return new Promise(r => setTimeout(() => { const w=document.createElement('div'); w.className='quick-replies'; w.id='qr'; buttons.forEach(b => { const btn=document.createElement('button'); btn.className='qr-btn'+(b.primary?' primary':''); btn.textContent=b.label; btn.onclick=()=>{ removeQR(); addUser(b.label); if(b.action)b.action(); }; w.appendChild(btn); }); chatEl.appendChild(w); scroll(); r(); }, d||0)); }
+function removeQR() { const q=document.getElementById('qr'); if(q)q.remove(); }
+function addUser(text) { const g=document.createElement('div'); g.className='msg-group user'; g.innerHTML=`<div class="msg user">${text}</div>`; chatEl.appendChild(g); scroll(); }
+function showTyping() { const e=document.createElement('div'); e.className='msg-group agent'; e.id='typing'; e.innerHTML='<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>'; chatEl.appendChild(e); scroll(); }
+function hideTyping() { const t=document.getElementById('typing'); if(t)t.remove(); }
+function scroll() { chatEl.scrollTop=chatEl.scrollHeight; }
+function delay(ms) { return new Promise(r=>setTimeout(r,ms)); }
+
+// ===== WELCOME =====
+async function startWelcome() {
+  await addAgent("Hi! I'm your <strong>Loop Onboarding Agent</strong>. I'll walk you through setting up your entire Loop platform across four modules:", 400);
+  await addCard(`<div class="mc-body" style="padding:12px 16px;"><div style="display:flex;flex-direction:column;gap:6px;font-size:12px;">
+    <div><strong style="color:var(--green-text);">&#10003; Access</strong> - Platform connections <span style="color:var(--text-light);">Complete</span></div>
+    <div><strong>2. Business</strong> - Brands, locations, calendar, people, costs, identity <span style="color:var(--text-light);">~10 min</span></div>
+    <div><strong>3. Billing</strong> - Contract, products, billing groups <span style="color:var(--text-light);">~7 min</span></div>
+    <div><strong>4. Technology</strong> - Integrations & connectors <span style="color:var(--text-light);">~2 min</span></div>
+  </div></div>`, 600);
+  await addAgent("Your Access setup is already <strong>complete</strong> - 20 stores connected across DoorDash, UberEats, and Grubhub. Everything auto-saves, so you can pause anytime. Ready?", 500);
+  await addQR([
+    { label: "Let's go!", primary: true, action: () => startBiz1() },
+    { label: "Show me access status first", action: () => showAccessStatus() }
+  ], 300);
+}
+
+async function showAccessStatus() {
+  showTyping(); await delay(500); hideTyping();
+  await addDivider('Access', 0);
+  await addCard(`<div class="mc-header"><h4>Platform Access</h4><span class="mc-tag prefill">Complete</span></div>
+    <div class="mc-body" style="padding:0;"><table class="mc-table" style="padding:0 16px;">
+      <thead><tr><th style="padding-left:16px;">Platform</th><th>Connected</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td style="padding-left:16px;"><strong>DoorDash</strong></td><td>20 / 20</td><td><span class="tag tag-green">100%</span></td></tr>
+        <tr><td style="padding-left:16px;"><strong>UberEats</strong></td><td>20 / 20</td><td><span class="tag tag-green">100%</span></td></tr>
+        <tr><td style="padding-left:16px;"><strong>Grubhub</strong></td><td>16 / 20</td><td><span class="tag tag-orange">80%</span></td></tr>
+      </tbody></table></div>`, 400);
+  await addAgent("80%+ threshold met across platforms. 4 Grubhub stores can be added anytime. Let's move on to Business setup.", 300);
+  await addQR([{ label: "Start Business Setup", primary: true, action: () => startBiz1() }], 200);
+}
+
+// ===== BUSINESS: STEP 1 =====
+async function startBiz1() {
+  currentStep='biz1'; updateSB('biz1');
+  showTyping(); await delay(600); hideTyping();
+  await addDivider('Business Onboarding', 0);
+  await addAgent("<strong>Step 1: Verify Your Business</strong> <span style='font-size:10px;color:var(--text-light);background:var(--bg);padding:2px 8px;border-radius:12px;'>~1 min</span>", 0);
+  await addAgent("Your AE captured your brand details. Take a look and correct anything.", 400);
+  await addCard(`<div class="mc-header"><h4>Your Brands</h4><span class="mc-tag prefill">Pre-filled from AE</span></div>
+    <div class="mc-body" style="padding:0;overflow-x:auto;"><table class="mc-table" style="padding:0 16px;">
+      <thead><tr><th style="padding-left:16px;">Brand</th><th>Type</th><th>Ownership</th><th>Entity</th><th>Stores</th></tr></thead>
+      <tbody>
+        <tr><td style="padding-left:16px;"><strong>Dave's Hot Chicken</strong></td><td><span class="tag">Real</span></td><td><select class="fi prefilled" style="width:110px;"><option selected>Franchisee</option><option>Franchisor</option><option>Fully Owned</option><option>CPA</option></select></td><td><input class="fi prefilled" style="width:130px;" value="Dave's Hot Chicken Inc."></td><td>12</td></tr>
+        <tr><td style="padding-left:16px;"><strong>Slim Chickens</strong></td><td><span class="tag">Real</span></td><td><select class="fi prefilled" style="width:110px;"><option selected>Franchisee</option><option>Franchisor</option><option>Fully Owned</option><option>CPA</option></select></td><td><input class="fi prefilled" style="width:130px;" value="Slim Chickens LLC"></td><td>8</td></tr>
+      </tbody></table></div>
+    <div class="mc-footer"><button class="btn btn-sm btn-ghost" onclick="addBrandChat()">+ Add Brand</button></div>`, 400);
+  await addCard(`<div class="mc-header"><h4>Corporate Involvement</h4></div><div class="mc-body"><div class="mc-form-grid">
+    <div class="mc-fg"><div class="mc-fl">Dave's Hot Chicken</div><select class="fi prefilled"><option>None</option><option selected>Aware of deployment</option><option>Active participant</option></select></div>
+    <div class="mc-fg"><div class="mc-fl">Slim Chickens</div><select class="fi prefilled"><option selected>None</option><option>Aware of deployment</option><option>Active participant</option></select></div>
+  </div></div>`, 300);
+  await addAgent("Does this look right? Edit directly in the cards or tell me what to change.", 300);
+  await addQR([
+    { label: "Looks good, continue", primary: true, action: () => startBiz2() },
+    { label: "Add another brand", action: () => addBrandChat() }
+  ], 200);
+}
+function addBrandChat() { removeQR(); addUser("I want to add a brand"); showTyping(); setTimeout(async()=>{ hideTyping(); await addCard(`<div class="mc-header"><h4>Add New Brand</h4></div><div class="mc-body"><div class="mc-form-grid"><div class="mc-fg"><div class="mc-fl">Brand Name</div><input class="fi" placeholder="e.g. Wingstop"></div><div class="mc-fg"><div class="mc-fl">Type</div><select class="fi"><option selected>Real</option><option>Virtual</option></select></div><div class="mc-fg"><div class="mc-fl">Ownership</div><select class="fi"><option>Franchisee</option><option>Franchisor</option><option>Fully Owned</option><option>CPA</option></select></div><div class="mc-fg"><div class="mc-fl">Entity</div><input class="fi" placeholder="Legal name"></div></div></div><div class="mc-footer"><button class="btn btn-sm btn-primary" onclick="this.textContent='Added!';this.disabled=true;">Add Brand</button></div>`,300); await addQR([{label:"Continue to Locations",primary:true,action:()=>startBiz2()}],200); },500); }
+
+// ===== BUSINESS: STEP 2 =====
+async function startBiz2() {
+  currentStep='biz2'; updateSB('biz2');
+  showTyping(); await delay(600); hideTyping();
+  await addAgent("<strong>Step 2: Locations & Regions</strong> <span style='font-size:10px;color:var(--text-light);background:var(--bg);padding:2px 8px;border-radius:12px;'>~3 min</span>", 0);
+  await addAgent("I found <strong>20 locations</strong> from your marketplace accounts. I need region groupings and open dates for same-store performance.", 400);
+  await addCard(`<div class="mc-header"><h4>Locations</h4><span class="mc-tag prefill">20 detected</span></div>
+    <div class="mc-body" style="padding:0;overflow-x:auto;"><table class="mc-table" style="min-width:550px;padding:0 16px;">
+      <thead><tr><th style="padding-left:16px;">Location</th><th>Brand</th><th>Ownership</th><th>Region</th><th>Open Date</th></tr></thead>
+      <tbody>
+        <tr><td style="padding-left:16px;"><strong>#101 Downtown Tampa</strong><div style="font-size:9px;color:var(--text-light);">Tampa FL</div></td><td><span class="tag">Dave's</span></td><td><select class="fi" style="width:90px;"><option>Corporate</option><option selected>Franchisee</option><option>Franchisor</option><option>Fully Owned</option><option>CPA</option></select></td><td><input class="fi" style="width:75px;" value="Florida"></td><td><input type="date" class="fi" style="width:110px;" value="2024-03-15"></td></tr>
+        <tr><td style="padding-left:16px;"><strong>#102 Westchase</strong><div style="font-size:9px;color:var(--text-light);">Tampa FL</div></td><td><span class="tag">Dave's</span></td><td><select class="fi" style="width:90px;"><option>Corporate</option><option selected>Franchisee</option></select></td><td><input class="fi" style="width:75px;" value="Florida"></td><td><input type="date" class="fi" style="width:110px;" value="2024-06-01"></td></tr>
+        <tr><td style="padding-left:16px;"><strong>#201 Midtown Atlanta</strong><div style="font-size:9px;color:var(--text-light);">Atlanta GA</div></td><td><span class="tag">Slim</span></td><td><select class="fi" style="width:90px;"><option>Corporate</option><option selected>Franchisee</option></select></td><td><input class="fi" style="width:75px;" value="Georgia"></td><td><input type="date" class="fi" style="width:110px;" value="2023-09-20"></td></tr>
+        <tr><td colspan="5" style="text-align:center;color:var(--text-light);font-size:10px;padding:8px;">+ 17 more</td></tr>
+      </tbody></table></div>
+    <div class="mc-footer"><button class="btn btn-sm btn-ghost" onclick="this.textContent='Applied!';this.disabled=true;">Apply "Franchisee" to all</button><button class="btn btn-sm btn-ghost" onclick="this.textContent='Filled!';this.disabled=true;">Fill Region from row 1</button></div>`, 500);
+  await addAgent("Edit inline above or upload a CSV if you have a spreadsheet ready.", 300);
+  await addQR([
+    { label: "Looks good, continue", primary: true, action: () => startBiz3() },
+    { label: "Upload CSV", action: () => { addUser("I'll upload a CSV"); showTyping(); setTimeout(async()=>{ hideTyping(); await addCard(`<div class="mc-header"><h4>Bulk Upload</h4></div><div class="mc-body"><div class="mc-upload" onclick="document.getElementById('csv-in').click()"><input type="file" id="csv-in" accept=".csv" style="display:none;" onchange="this.parentElement.innerHTML='<div style=color:var(--green-text);font-weight:600>'+this.files[0].name+' uploaded!</div>'"><div style="font-size:18px;opacity:0.3;margin-bottom:4px;">&#8682;</div><div style="font-size:11px;color:var(--text-sec);">Drop CSV or <strong style="color:var(--accent-text);">click to browse</strong></div></div></div>`,300); await addQR([{label:"Continue",primary:true,action:()=>startBiz3()}],200); },500); } },
+    { label: "All Franchisee", action: () => { addUser("All stores are Franchisee"); setTimeout(async()=>{ await addAgent("Applied Franchisee to all 20 locations.",200); await addQR([{label:"Continue",primary:true,action:()=>startBiz3()}],200); },300); } }
+  ], 200);
+}
+
+// ===== BUSINESS: STEP 3 =====
+async function startBiz3() {
+  currentStep='biz3'; updateSB('biz3');
+  showTyping(); await delay(600); hideTyping();
+  await addAgent("<strong>Step 3: Calendar & Comp Rules</strong> <span style='font-size:10px;color:var(--text-light);background:var(--bg);padding:2px 8px;border-radius:12px;'>~1 min</span>", 0);
+  await addCard(`<div class="mc-header"><h4>Fiscal Calendar & Comp</h4></div><div class="mc-body">
+    <div class="mc-form-grid">
+      <div class="mc-fg"><div class="mc-fl">Fiscal year starts</div><select class="fi"><option selected>January</option><option>April</option><option>July</option><option>October</option></select></div>
+      <div class="mc-fg"><div class="mc-fl">Period type</div><select class="fi"><option selected>Calendar Month</option><option>4-4-5</option><option>4-5-4</option><option>5-4-4</option></select></div>
+      <div class="mc-fg"><div class="mc-fl">Comp after</div><select class="fi"><option selected>12 months</option><option>18 months</option><option>Custom</option></select></div>
+      <div class="mc-fg"><div class="mc-fl">SSS eligibility</div><select class="fi"><option selected>Same as comp</option><option>Custom rules</option></select></div>
+    </div>
+    <div class="toggle-row" style="margin-top:8px;"><span class="toggle-label">Same calendar for all brands?</span><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+  </div>`, 400);
+  await addAgent("Calendar month + 12-month comp is standard for QSR franchisees. Match you?", 300);
+  await addQR([
+    { label: "Yes, continue", primary: true, action: () => startBiz4() },
+    { label: "We use 4-4-5", action: () => { addUser("We use 4-4-5"); setTimeout(async()=>{ await addAgent("Switched to <strong>4-4-5</strong>. Moving on!",200); startBiz4(); },300); } }
+  ], 200);
+}
+
+// ===== BUSINESS: STEP 4 =====
+async function startBiz4() {
+  currentStep='biz4'; updateSB('biz4');
+  showTyping(); await delay(600); hideTyping();
+  await addAgent("<strong>Step 4: People & Decisions</strong> <span style='font-size:10px;color:var(--text-light);background:var(--bg);padding:2px 8px;border-radius:12px;'>~2 min</span>", 0);
+  await addCard(`<div class="mc-header"><h4>Marketing Structure</h4><span class="mc-tag prefill">Pre-filled</span></div><div class="mc-body">
+    <div class="mc-fg" style="margin-bottom:8px;"><div class="mc-fl">How is marketing managed?</div><select class="fi prefilled" style="max-width:280px;"><option>We manage ourselves</option><option selected>Marketplace reps</option><option>Agency</option><option>Corporate national</option><option>Co-op</option></select></div>
+    <div class="toggle-row"><span class="toggle-label">Corporate runs national campaigns?</span><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+    <div class="toggle-row"><span class="toggle-label">Can opt out of nationals?</span><div class="toggle" onclick="this.classList.toggle('on')"></div></div>
+  </div>`, 400);
+  await addCard(`<div class="mc-header"><h4>Key People</h4><button class="btn btn-sm btn-ghost" onclick="addPersonChat()">+ Add</button></div>
+    <div class="mc-body" style="padding:0;overflow-x:auto;"><table class="mc-table" style="padding:0 16px;">
+      <thead><tr><th style="padding-left:16px;">Name</th><th>Email</th><th>Role</th><th>Reports</th><th>Decides</th></tr></thead>
+      <tbody id="people-chat-tbody">
+        <tr><td style="padding-left:16px;"><input class="fi prefilled" style="width:110px;" value="Marcus Johnson"></td><td><input class="fi prefilled" style="width:140px;" value="marcus@example.com"></td><td><select class="fi" style="width:90px;"><option>Owner</option><option selected>Marketing</option><option>Operations</option><option>Finance</option></select></td><td style="text-align:center;"><input type="checkbox" checked></td><td style="text-align:center;"><input type="checkbox" checked></td></tr>
+        <tr><td style="padding-left:16px;"><input class="fi" style="width:110px;" value="Sarah Chen"></td><td><input class="fi" style="width:140px;" value="sarah@example.com"></td><td><select class="fi" style="width:90px;"><option selected>Owner</option><option>Marketing</option></select></td><td style="text-align:center;"><input type="checkbox" checked></td><td style="text-align:center;"><input type="checkbox"></td></tr>
+      </tbody></table></div>`, 300);
+  await addAgent("Marcus is your marketing lead with decision authority. Want to add anyone else?", 300);
+  await addQR([
+    { label: "Looks good, continue", primary: true, action: () => startBiz5() },
+    { label: "Add person", action: () => addPersonChat() }
+  ], 200);
+}
+function addPersonChat() { removeQR(); addUser("Add another person"); showTyping(); setTimeout(async()=>{ hideTyping(); const tb=document.getElementById('people-chat-tbody'); if(tb){ const tr=document.createElement('tr'); tr.innerHTML='<td style="padding-left:16px;"><input class="fi" style="width:110px;" placeholder="Name"></td><td><input class="fi" style="width:140px;" placeholder="email"></td><td><select class="fi" style="width:90px;"><option>Owner</option><option>Marketing</option><option selected>Operations</option><option>Finance</option></select></td><td style="text-align:center;"><input type="checkbox"></td><td style="text-align:center;"><input type="checkbox"></td>'; tr.style.animation='msgIn 0.3s ease'; tb.appendChild(tr); } await addAgent("Added a new row. Fill in their details.",0); await addQR([{label:"Continue to Costs",primary:true,action:()=>startBiz5()},{label:"Add another",action:()=>addPersonChat()}],200); },500); }
+
+// ===== BUSINESS: STEP 5 =====
+async function startBiz5() {
+  currentStep='biz5'; updateSB('biz5');
+  showTyping(); await delay(600); hideTyping();
+  await addAgent("<strong>Step 5: Cost Structure</strong> <span style='font-size:10px;color:var(--text-light);background:var(--bg);padding:2px 8px;border-radius:12px;'>~2 min</span>", 0);
+  await addAgent("Rough cost breakdown per brand. Powers ROI calculations. <strong>Estimates are fine</strong> - refine later.", 400);
+  await addCard(`<div class="mc-header"><h4>Unit Economics - Dave's Hot Chicken</h4></div><div class="mc-body">
+    <div class="mc-form-grid">
+      <div class="mc-fg"><div class="mc-fl">Food Costs</div><div style="position:relative;"><input class="fi" style="width:100%;padding-right:24px;" value="32"><span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);color:var(--text-light);font-size:11px;">%</span></div></div>
+      <div class="mc-fg"><div class="mc-fl">Packaging</div><div style="position:relative;"><input class="fi" style="width:100%;padding-right:24px;" value="6"><span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);color:var(--text-light);font-size:11px;">%</span></div></div>
+      <div class="mc-fg"><div class="mc-fl">Royalty</div><div style="position:relative;"><input class="fi" style="width:100%;padding-right:24px;" value="5"><span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);color:var(--text-light);font-size:11px;">%</span></div></div>
+      <div class="mc-fg"><div class="mc-fl">Ad Fund</div><div style="position:relative;"><input class="fi" style="width:100%;padding-right:24px;" value="3"><span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);color:var(--text-light);font-size:11px;">%</span></div></div>
+      <div class="mc-fg"><div class="mc-fl">Labour</div><div style="position:relative;"><input class="fi" style="width:100%;padding-right:24px;" value="27"><span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);color:var(--text-light);font-size:11px;">%</span></div></div>
+      <div class="mc-fg"><div class="mc-fl">Rent</div><div style="position:relative;"><input class="fi" style="width:100%;padding-right:24px;" value="9"><span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);color:var(--text-light);font-size:11px;">%</span></div></div>
+    </div>
+    <div class="mc-summary"><span class="label">Costs / Margin</span><span class="value">82% / 18%</span></div>
+    <div class="toggle-row" style="margin-top:6px;"><span class="toggle-label">Same for all brands?</span><div class="toggle" onclick="this.classList.toggle('on')"></div></div>
+  </div>`, 500);
+  await addAgent("18% implied margin is typical for QSR franchisees. Look right?", 300);
+  await addQR([
+    { label: "Yes, continue", primary: true, action: () => startBiz6() },
+    { label: "Skip costs for now", action: () => { addUser("I'll fill this later"); setTimeout(async()=>{ await addAgent("No problem - update anytime in Settings.",200); startBiz6(); },300); } }
+  ], 200);
+}
+
+// ===== BUSINESS: STEP 6 =====
+async function startBiz6() {
+  currentStep='biz6'; updateSB('biz6');
+  showTyping(); await delay(600); hideTyping();
+  await addAgent("<strong>Step 6: Brand Identity</strong> <span style='font-size:10px;color:var(--text-light);background:var(--bg);padding:2px 8px;border-radius:12px;'>~1 min</span>", 0);
+  await addCard(`<div class="mc-header"><h4>Dave's Hot Chicken</h4><span class="mc-tag prefill">Auto-detected</span></div><div class="mc-body">
+    <div class="mc-form-grid">
+      <div class="mc-fg"><div class="mc-fl">Brand Logo</div><div class="mc-upload" style="padding:10px;" onclick="document.getElementById('logo-in').click()"><input type="file" id="logo-in" accept="image/*" style="display:none;" onchange="this.parentElement.innerHTML='<div style=color:var(--green-text);font-weight:600;font-size:11px>Logo uploaded!</div>'">
+        <svg width="50" height="50" viewBox="0 0 80 80" fill="none" style="border-radius:8px;border:2px solid var(--border);"><rect width="80" height="80" rx="12" fill="#FFF5F5"/><text x="40" y="35" text-anchor="middle" font-size="24" font-weight="800" fill="#e63946">D</text><text x="40" y="55" text-anchor="middle" font-size="7" font-weight="700" fill="#e63946">DAVE'S</text></svg>
+        <div style="font-size:10px;color:var(--green-text);font-weight:600;margin-top:3px;">Auto-detected</div></div></div>
+      <div class="mc-fg"><div class="mc-fl">Colors</div><div class="swatch-row" style="margin-top:4px;"><div class="swatch"><div class="swatch-circle" style="background:#e63946;"></div><span>Primary</span></div><div class="swatch"><div class="swatch-circle" style="background:#1d3557;"></div><span>Secondary</span></div><div class="swatch"><div class="swatch-circle" style="background:#f1faee;"></div><span>Accent</span></div></div></div>
+      <div class="mc-fg"><div class="mc-fl">AI Persona Name</div><input class="fi" placeholder="e.g. Dave Z"></div>
+      <div class="mc-fg"><div class="mc-fl">Website</div><input class="fi prefilled" value="https://daveshotchicken.com"></div>
+    </div></div>`, 400);
+  await addAgent("Last step of Business setup! Give your AI a name or I'll auto-generate one.", 300);
+  await addQR([
+    { label: "Complete Business Setup", primary: true, action: () => completeBusiness() },
+    { label: "Call it Dave Z", action: () => { addUser("Call it Dave Z"); setTimeout(async()=>{ await addAgent("<strong>Dave Z</strong> it is! Business setup complete.",200); completeBusiness(); },300); } }
+  ], 200);
+}
+
+async function completeBusiness() {
+  showTyping(); await delay(600); hideTyping();
+  await addAgent("Business setup is <strong>complete</strong>! All 6 steps done. Now let's set up your billing.", 0);
+  await addQR([{ label: "Start Billing Setup", primary: true, action: () => startBill1() }], 300);
+}
+
+// ===== BILLING: OVERVIEW =====
+async function startBill1() {
+  currentStep='bill1'; updateSB('bill1');
+  showTyping(); await delay(600); hideTyping();
+  await addDivider('Billing Onboarding', 0);
+  await addAgent("<strong>Billing: Overview & Contract</strong> <span style='font-size:10px;color:var(--text-light);background:var(--bg);padding:2px 8px;border-radius:12px;'>~2 min</span>", 0);
+  await addAgent("Here's your current billing summary and contract details. Review and confirm.", 400);
+  await addCard(`<div class="mc-header"><h4>Billing Summary</h4></div><div class="mc-body">
+    <div class="mc-stats">
+      <div class="mc-stat"><div class="mc-stat-label">Total Billed (YTD)</div><div class="mc-stat-value">$18,450</div><div class="mc-stat-sub">Jan - May 2026</div></div>
+      <div class="mc-stat"><div class="mc-stat-label">Total Payments</div><div class="mc-stat-value">$15,200</div><div class="mc-stat-sub">4 of 5 invoices paid</div></div>
+      <div class="mc-stat"><div class="mc-stat-label">Outstanding</div><div class="mc-stat-value" style="color:var(--orange);">$3,250</div><div class="mc-stat-sub">1 pending</div></div>
+      <div class="mc-stat"><div class="mc-stat-label">Next Invoice</div><div class="mc-stat-value">Jun 1</div><div class="mc-stat-sub">Est. $3,690</div></div>
+    </div></div>`, 500);
+  await addCard(`<div class="mc-header"><h4>Contract & Billing Details</h4></div><div class="mc-body">
+    <div class="mc-form-grid">
+      <div class="mc-fg"><div class="mc-fl">Contract</div><div style="display:flex;align-items:center;gap:6px;font-size:12px;"><span style="opacity:0.4;">&#128196;</span><a href="#" style="color:var(--accent-text);text-decoration:none;">Hamm_Org_Agreement_2025.pdf</a></div><div style="font-size:10px;color:var(--text-light);">Signed Dec 15, 2025 &middot; Annual</div></div>
+      <div class="mc-fg"><div class="mc-fl">Billing Cycle</div><select class="fi"><option selected>Monthly</option><option>Quarterly</option><option>Annual</option></select></div>
+      <div class="mc-fg"><div class="mc-fl">Payment Terms</div><select class="fi"><option selected>Net 15</option><option>Net 30</option><option>Due on receipt</option></select></div>
+      <div class="mc-fg"><div class="mc-fl">Currency</div><select class="fi"><option selected>USD ($)</option><option>CAD (C$)</option></select></div>
+    </div></div>`, 300);
+  await addCard(`<div class="mc-header"><h4>Billing Contact</h4></div><div class="mc-body"><div class="mc-form-grid">
+    <div class="mc-fg"><div class="mc-fl">Name</div><input class="fi" value="Sarah Chen"></div>
+    <div class="mc-fg"><div class="mc-fl">Email</div><input class="fi" value="billing@hammorg.com"></div>
+    <div class="mc-fg"><div class="mc-fl">Phone</div><input class="fi" value="(555) 123-4567"></div>
+    <div class="mc-fg"><div class="mc-fl">Address</div><input class="fi" value="100 Main St, Tampa FL 33602"></div>
+  </div></div>`, 200);
+  await addAgent("Everything look correct? You can edit the billing contact and payment terms directly.", 300);
+  await addQR([
+    { label: "Looks good, continue", primary: true, action: () => startBill2() },
+    { label: "Update billing contact", action: () => { addUser("Need to update contact"); setTimeout(async()=>{ await addAgent("Edit the fields in the Billing Contact card above, then continue when ready.",200); await addQR([{label:"Continue",primary:true,action:()=>startBill2()}],200); },300); } }
+  ], 200);
+}
+
+// ===== BILLING: MY LOOP =====
+async function startBill2() {
+  currentStep='bill2'; updateSB('bill2');
+  showTyping(); await delay(600); hideTyping();
+  await addAgent("<strong>Billing: My Loop Products</strong> <span style='font-size:10px;color:var(--text-light);background:var(--bg);padding:2px 8px;border-radius:12px;'>~2 min</span>", 0);
+  await addAgent("Here are your active products and modules you could enable. Pricing is per-location per-month.", 400);
+  await addCard(`<div class="mc-header"><h4>Active Products</h4></div><div class="mc-body">
+    <div class="mc-product-grid">
+      <div class="mc-product active-p"><h5>TruROI+ <span class="tag tag-teal">Active</span></h5><div class="pp">6 locations &middot; $100 PPL/mo &rarr; <strong>$600/mo</strong></div></div>
+      <div class="mc-product active-p"><h5>Recover <span class="tag tag-teal">Active</span></h5><div class="pp">6 locations &middot; $15 PPL/mo &rarr; <strong>$90/mo</strong></div></div>
+    </div></div>`, 500);
+  await addCard(`<div class="mc-header"><h4>Available Modules</h4></div><div class="mc-body">
+    <div class="mc-product-grid">
+      <div class="mc-product fomo-p"><h5>Protect <span class="tag tag-orange">Not enabled</span></h5><div style="font-size:11px;color:var(--text-sec);margin-top:3px;">Block fraudulent chargebacks</div><div class="fomo-stat">Avg. $2,400/loc/year saved</div><div class="mc-product-actions"><button class="btn btn-sm btn-teal" onclick="this.textContent='Requested!';this.disabled=true;">Request</button><button class="btn btn-sm btn-ghost">Case Study</button></div></div>
+      <div class="mc-product fomo-p"><h5>Balance <span class="tag tag-orange">Not enabled</span></h5><div style="font-size:11px;color:var(--text-sec);margin-top:3px;">Payment reconciliation</div><div class="fomo-stat">Recover 3-5% missed payouts</div><div class="mc-product-actions"><button class="btn btn-sm btn-teal" onclick="this.textContent='Requested!';this.disabled=true;">Request</button><button class="btn btn-sm btn-ghost">Case Study</button></div></div>
+      <div class="mc-product fomo-p"><h5>Inspect <span class="tag tag-orange">Not enabled</span></h5><div style="font-size:11px;color:var(--text-sec);margin-top:3px;">Deep analytics</div><div class="fomo-stat">85% of enterprise chains use it</div><div class="mc-product-actions"><button class="btn btn-sm btn-teal" onclick="this.textContent='Requested!';this.disabled=true;">Request</button><button class="btn btn-sm btn-ghost">Case Study</button></div></div>
+      <div class="mc-product fomo-p"><h5>Smart Alerts <span class="tag tag-orange">Not enabled</span></h5><div style="font-size:11px;color:var(--text-sec);margin-top:3px;">Real-time notifications</div><div class="fomo-stat">4x faster response times</div><div class="mc-product-actions"><button class="btn btn-sm btn-teal" onclick="this.textContent='Requested!';this.disabled=true;">Request</button><button class="btn btn-sm btn-ghost">Case Study</button></div></div>
+    </div></div>`, 400);
+  await addAgent("Your current plan is <strong>$690/mo</strong> (TruROI+ + Recover). Interested in any additional modules? Your CSM can enable within 24 hours.", 300);
+  await addQR([
+    { label: "Continue to Billing Groups", primary: true, action: () => startBill3() },
+    { label: "Tell me about Protect", action: () => { addUser("Tell me about Protect"); showTyping(); setTimeout(async()=>{ hideTyping(); await addAgent("<strong>Protect</strong> proactively blocks fraudulent chargebacks before they hit your P&L. QSR chains using it save an average of <strong>$2,400 per location per year</strong>. For your 6 locations, that's ~$14,400/year in savings. Want me to request it?",0); await addQR([{label:"Request Protect",primary:true,action:()=>{addUser("Yes, request it");setTimeout(async()=>{await addAgent("Done! Your CSM will reach out within 24 hours to enable Protect.",200);await addQR([{label:"Continue to Billing Groups",primary:true,action:()=>startBill3()}],200);},300);}},{label:"Continue without it",action:()=>startBill3()}],200); },500); } }
+  ], 200);
+}
+
+// ===== BILLING: GROUPS =====
+async function startBill3() {
+  currentStep='bill3'; updateSB('bill3');
+  showTyping(); await delay(600); hideTyping();
+  await addAgent("<strong>Billing: Billing Groups</strong> <span style='font-size:10px;color:var(--text-light);background:var(--bg);padding:2px 8px;border-radius:12px;'>~3 min</span>", 0);
+  await addAgent("Billing groups let you split invoices by region or entity. Each gets its own invoice and payment method. Here's what's set up:", 400);
+  await addCard(`<div class="mc-body">
+    <div class="mc-bg"><h5>Hamm Org - East Region <span class="tag tag-green">Active</span></h5><div class="mc-bg-grid">
+      <div class="mc-bg-field"><div class="lbl">Locations</div><div class="val">4 locations</div></div>
+      <div class="mc-bg-field"><div class="lbl">Account Manager</div><div class="val">Kara Sandoval</div></div>
+      <div class="mc-bg-field"><div class="lbl">Email</div><div class="val">kara.sandoval@kellypartners.com</div></div>
+      <div class="mc-bg-field"><div class="lbl">Payment</div><div class="val">Visa ****4242</div></div>
+      <div class="mc-bg-field"><div class="lbl">Phone</div><div class="val">(555) 123-4567</div></div>
+      <div class="mc-bg-field"><div class="lbl">Monthly Total</div><div class="val" style="font-weight:700;color:var(--accent);">$460/mo</div></div>
+    </div></div>
+    <div class="mc-bg"><h5>Hamm Org - West Region <span class="tag tag-green">Active</span></h5><div class="mc-bg-grid">
+      <div class="mc-bg-field"><div class="lbl">Locations</div><div class="val">2 locations</div></div>
+      <div class="mc-bg-field"><div class="lbl">Account Manager</div><div class="val">Tom Richards</div></div>
+      <div class="mc-bg-field"><div class="lbl">Email</div><div class="val">tom.richards@hammorg.com</div></div>
+      <div class="mc-bg-field"><div class="lbl">Payment</div><div class="val">ACH / Bank Transfer</div></div>
+      <div class="mc-bg-field"><div class="lbl">Phone</div><div class="val">(555) 987-6543</div></div>
+      <div class="mc-bg-field"><div class="lbl">Monthly Total</div><div class="val" style="font-weight:700;color:var(--accent);">$230/mo</div></div>
+    </div></div>
+  </div>`, 500);
+  await addAgent("Two billing groups are configured. Need to add another or edit these?", 300);
+  await addQR([
+    { label: "Looks good, complete billing", primary: true, action: () => completeBilling() },
+    { label: "Edit East Region", action: () => editBillingGroup() },
+    { label: "Add new group", action: () => addBillingGroupChat() }
+  ], 200);
+}
+
+function editBillingGroup() { removeQR(); addUser("Edit East Region"); showTyping(); setTimeout(async()=>{ hideTyping();
+  await addCard(`<div class="mc-header"><h4>Edit: East Region</h4></div><div class="mc-body"><div class="mc-form-grid">
+    <div class="mc-fg"><div class="mc-fl">Account Manager</div><input class="fi" value="Kara Sandoval"></div>
+    <div class="mc-fg"><div class="mc-fl">Email</div><input class="fi" value="kara.sandoval@kellypartners.com"></div>
+    <div class="mc-fg"><div class="mc-fl">Phone</div><input class="fi" value="(555) 123-4567"></div>
+    <div class="mc-fg"><div class="mc-fl">Payment Method</div><select class="fi"><option selected>Visa ****4242</option><option>ACH / Bank Transfer</option><option>+ Add new</option></select></div>
+  </div></div><div class="mc-footer"><button class="btn btn-sm btn-primary" onclick="this.textContent='Saved!';this.disabled=true;">Save Changes</button></div>`,300);
+  await addAgent("Make your changes and save. Changes notify Loop Finance for review.",200);
+  await addQR([{label:"Done, complete billing",primary:true,action:()=>completeBilling()}],200);
+},500); }
+
+function addBillingGroupChat() { removeQR(); addUser("Add a new billing group"); showTyping(); setTimeout(async()=>{ hideTyping();
+  await addCard(`<div class="mc-header"><h4>New Billing Group</h4></div><div class="mc-body"><div class="mc-form-grid">
+    <div class="mc-fg"><div class="mc-fl">Group Name</div><input class="fi" placeholder="e.g. Southeast Region"></div>
+    <div class="mc-fg"><div class="mc-fl">Locations</div><input class="fi" type="number" placeholder="0"></div>
+    <div class="mc-fg"><div class="mc-fl">Account Manager</div><input class="fi" placeholder="Full name"></div>
+    <div class="mc-fg"><div class="mc-fl">Email</div><input class="fi" placeholder="email@co.com"></div>
+    <div class="mc-fg"><div class="mc-fl">Phone</div><input class="fi" placeholder="(555) 000-0000"></div>
+    <div class="mc-fg"><div class="mc-fl">Payment Method</div><select class="fi"><option>Visa ****4242</option><option>ACH / Bank Transfer</option><option>+ Add new</option></select></div>
+  </div></div><div class="mc-footer"><button class="btn btn-sm btn-primary" onclick="this.textContent='Group Added!';this.disabled=true;">Save Group</button></div>`,300);
+  await addAgent("Fill in the details and save. The new group will appear on your next invoice.",200);
+  await addQR([{label:"Done, complete billing",primary:true,action:()=>completeBilling()}],200);
+},500); }
+
+async function completeBilling() {
+  showTyping(); await delay(600); hideTyping();
+  await addAgent("Billing setup is <strong>complete</strong>! Contract confirmed, products reviewed, billing groups configured. Last module: Technology.", 0);
+  await addQR([{ label: "Start Technology Setup", primary: true, action: () => startTech() }], 300);
+}
+
+// ===== TECHNOLOGY =====
+async function startTech() {
+  currentStep='tech1'; updateSB('tech1');
+  showTyping(); await delay(600); hideTyping();
+  await addDivider('Technology', 0);
+  await addAgent("<strong>Technology: Integrations</strong> <span style='font-size:10px;color:var(--text-light);background:var(--bg);padding:2px 8px;border-radius:12px;'>~2 min</span>", 0);
+  await addAgent("Last step! Connect your tools. Alerts, data feeds, and approvals flow through these across all modules.", 400);
+  await addCard(`<div class="mc-header"><h4>Communication</h4></div><div class="mc-body">
+    <div class="mc-int-grid">
+      <div class="mc-int-card"><div><h5>Slack</h5><p>Alerts, reports, approvals</p></div><button class="btn btn-sm btn-primary" onclick="this.textContent='Connected';this.style.color='var(--green-text)';this.style.background='var(--green-soft)';this.disabled=true;">Connect</button></div>
+      <div class="mc-int-card"><div><h5>Microsoft Teams</h5><p>Alerts, reports, approvals</p></div><button class="btn btn-sm btn-ghost" onclick="this.textContent='Connected';this.style.color='var(--green-text)';this.disabled=true;">Connect</button></div>
+    </div></div>`, 500);
+  await addCard(`<div class="mc-header"><h4>POS Systems</h4></div><div class="mc-body">
+    <div class="mc-conn-grid">
+      <div class="mc-conn-card" onclick="this.style.borderColor='var(--green)';this.style.background='var(--green-soft)';this.querySelector('p').textContent='Connected'"><div style="font-size:16px;opacity:0.4;">&#9634;</div><h5>Toast</h5><p>POS + payroll</p></div>
+      <div class="mc-conn-card" onclick="this.style.borderColor='var(--green)';this.style.background='var(--green-soft)';this.querySelector('p').textContent='Connected'"><div style="font-size:16px;opacity:0.4;">&#9634;</div><h5>Square</h5><p>POS + payments</p></div>
+      <div class="mc-conn-card" onclick="this.style.borderColor='var(--green)';this.style.background='var(--green-soft)';this.querySelector('p').textContent='Connected'"><div style="font-size:16px;opacity:0.4;">&#9634;</div><h5>Aloha</h5><p>NCR POS</p></div>
+    </div></div>`, 300);
+  await addCard(`<div class="mc-header"><h4>Accounting & Other</h4></div><div class="mc-body">
+    <div class="mc-int-grid">
+      <div class="mc-int-card"><div><h5>QuickBooks</h5><p>Expense, GL sync</p></div><button class="btn btn-sm btn-ghost" onclick="this.textContent='Connected';this.style.color='var(--green-text)';this.disabled=true;">Connect</button></div>
+      <div class="mc-int-card"><div><h5>Xero</h5><p>Accounting</p></div><button class="btn btn-sm btn-ghost" onclick="this.textContent='Connected';this.style.color='var(--green-text)';this.disabled=true;">Connect</button></div>
+    </div>
+    <div class="mc-conn-grid" style="margin-top:8px;">
+      <div class="mc-conn-card" onclick="this.style.borderColor='var(--green)';this.style.background='var(--green-soft)';this.querySelector('p').textContent='Connected'"><div style="font-size:16px;opacity:0.4;">&#9634;</div><h5>CRM</h5><p>Salesforce, HubSpot</p></div>
+      <div class="mc-conn-card" onclick="this.style.borderColor='var(--green)';this.style.background='var(--green-soft)';this.querySelector('p').textContent='Connected'"><div style="font-size:16px;opacity:0.4;">&#9634;</div><h5>Loyalty</h5><p>Punchh, LevelUp</p></div>
+      <div class="mc-conn-card" onclick="this.style.borderColor='var(--green)';this.style.background='var(--green-soft)';this.querySelector('p').textContent='Connected'"><div style="font-size:16px;opacity:0.4;">&#9634;</div><h5>Inventory</h5><p>MarginEdge</p></div>
+    </div></div>`, 200);
+  await addAgent("Slack is the most popular choice. Connect what you need - you can always add more later.", 300);
+  await addQR([
+    { label: "Finish Setup", primary: true, action: () => completeAll() },
+    { label: "Skip, I'll connect later", action: () => completeAll() },
+    { label: "We use Slack", action: () => { addUser("Connect Slack"); setTimeout(async()=>{ await addAgent("Slack connected! Alerts and reports will flow there.",200); await addQR([{label:"Finish Setup",primary:true,action:()=>completeAll()}],200); },300); } }
+  ], 200);
+}
+
+// ===== COMPLETE =====
+async function completeAll() {
+  currentStep='complete'; updateSB('complete');
+  showTyping(); await delay(700); hideTyping();
+  await addDivider('All Complete', 0);
+  await addAgent("That's everything! All four modules are configured. Your entire Loop platform is ready.", 0);
+  await addCard(`<div class="mc-body" style="text-align:center;padding:20px 16px;">
+    <div style="width:48px;height:48px;border-radius:50%;background:var(--green-soft);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:22px;color:var(--green);">&#10003;</div>
+    <h4 style="font-size:16px;margin-bottom:4px;">Onboarding Complete</h4>
+    <p style="font-size:12px;color:var(--text-sec);max-width:360px;margin:0 auto 16px;">Access, Business, Billing, and Technology are all set. Here's what's ready:</p>
+    <div class="mc-modules">
+      <div class="mc-mod ready"><h5><span class="sd green"></span>TruROI+</h5><p>Ready. Setup link sent.</p></div>
+      <div class="mc-mod ready"><h5><span class="sd green"></span>Balance</h5><p>Calendar + costs configured.</p></div>
+      <div class="mc-mod"><h5><span class="sd orange"></span>Protect</h5><p>Request submitted to CSM.</p></div>
+      <div class="mc-mod" style="opacity:0.45;"><h5>Ops</h5><p>Not in current plan.</p></div>
+    </div></div>`, 500);
+  await addAgent("You can revisit any settings from your dashboard. Anything else I can help with?", 300);
+  await addQR([
+    { label: "Go to Dashboard", primary: true, action: () => { addUser("Take me to the dashboard"); addAgent("Redirecting to your Loop dashboard...",300); } },
+    { label: "Start TruROI+ Setup", action: () => { addUser("Let's set up TruROI+"); addAgent("Opening TruROI+ module setup - it'll use all the business data we just configured!",300); } },
+    { label: "Talk to support", action: () => { addUser("I need help"); addAgent("Connecting you with your CSM. They'll reach out within the hour.",300); } }
+  ], 300);
+}
+
+// ===== FREE TEXT =====
+function sendUserMessage() {
+  const input=document.getElementById('user-input');
+  const text=input.value.trim();
+  if(!text)return;
+  input.value='';
+  removeQR();
+  addUser(text);
+  const lower=text.toLowerCase();
+  showTyping();
+  setTimeout(()=>{
+    hideTyping();
+    if(lower.includes('skip')||lower.includes('later')){
+      const nexts={biz1:startBiz2,biz2:startBiz3,biz3:startBiz4,biz4:startBiz5,biz5:startBiz6,biz6:completeBusiness,bill1:startBill2,bill2:startBill3,bill3:completeBilling,tech1:completeAll};
+      if(nexts[currentStep]){addAgent("No problem, skipping ahead.",0);nexts[currentStep]();}
+    } else if(lower.includes('back')||lower.includes('previous')){
+      const prevs={biz2:startBiz1,biz3:startBiz2,biz4:startBiz3,biz5:startBiz4,biz6:startBiz5,bill1:completeBusiness,bill2:startBill1,bill3:startBill2,tech1:completeBilling};
+      if(prevs[currentStep]){addAgent("Going back.",0);prevs[currentStep]();}
+    } else if(lower.includes('continu')||lower.includes('next')||lower.includes('yes')||lower.includes('looks good')||lower.includes('correct')){
+      const nexts={welcome:startBiz1,biz1:startBiz2,biz2:startBiz3,biz3:startBiz4,biz4:startBiz5,biz5:startBiz6,biz6:completeBusiness,bill1:startBill2,bill2:startBill3,bill3:completeBilling,tech1:completeAll};
+      if(nexts[currentStep])nexts[currentStep]();
+      else addAgent("You're all set! Head to your dashboard.",0);
+    } else if(lower.includes('help')){
+      addAgent("I'm here to help! Ask about any field, why we need info, or how to fill something in.",0);
+    } else {
+      addAgent("Got it, noted. Edit anything in the cards above, or say <strong>continue</strong> to move forward.",0);
+    }
+  },600);
+}
+
+// ===== SIDEBAR JUMP =====
+function jumpTo(step) {
+  removeQR();
+  const fns={biz1:startBiz1,biz2:startBiz2,biz3:startBiz3,biz4:startBiz4,biz5:startBiz5,biz6:startBiz6,bill1:startBill1,bill2:startBill2,bill3:startBill3,tech1:startTech};
+  if(fns[step]){addAgent("Jumping ahead...",0);setTimeout(()=>fns[step](),300);}
+}
+
+window.addEventListener('load',()=>startWelcome());
+</script>
+</body>
+</html>
